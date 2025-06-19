@@ -11,6 +11,10 @@ router.post('/register/otp', USER.handlePostOTPVerification)
 
 router.post('/login', USER.handlePostUserLogin)
 
+router.post('/forget-password', USER.handlePostForgetPassword)
+
+router.post('/forget-password/otp', USER.handlePostResetPasswordOtp)
+
 
 
 module.exports= router

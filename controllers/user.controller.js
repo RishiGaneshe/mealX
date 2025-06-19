@@ -6,10 +6,10 @@ const { createJwtToken }= require('../services/jwt_services_')
 const { sendSignUpOTP }= require('../services/email_services_')
 const { hashPassword, verifyPassword }= require('../services/hashing_services_')
 const { sequelize } = require('../services/connection_services_')
-const { fieldValidation_SignUp, fieldValidation_SignUpVerifyOTP, fieldValidation_Login }= require('../validators/userField.validator')
+const { fieldValidation_SignUp, fieldValidation_SignUpVerifyOTP, fieldValidation_Login, fieldValidation_ForgotPassword, fieldValidation_ResetPasswordOtp }= require('../validators/userField.validator')
 const { extractUsernameFromEmail, detectIdentifierType }= require('../services/miscellaneous_services_')
 const { Op } = require('sequelize')
-const { saveOtpInDatabase }= require('../database/otp_services_')
+const { saveOtpInDatabase, readOtpFromDatabase }= require('../database/otp_services_')
 
 
 
@@ -74,29 +74,18 @@ exports.handlePostOTPVerification= async(req, res)=>{
     const t= await sequelize.transaction()
     try{
         const { error, value}= fieldValidation_SignUpVerifyOTP.validate(req.body)
-        if (error) {
-            await t.rollback()
-            return res.status(400).json({ success: false, message: error.details[0].message })
-        }
+            if (error) {
+                await t.rollback()
+                return res.status(400).json({ success: false, message: error.details[0].message })
+            }
 
         const { identifier, identifierType, otp, context, requestId } = value
-        const otpRecord = await OTP.findOne({
-            where: {
-              reciever: identifier,
-              receiverType: identifierType,
-              otp,
-              context,
-              requestId,
-              expiresAt: { [Op.gt]: new Date() },
-            },
-            transaction: t,
-            lock: true,
-          })
 
-        if (!otpRecord) {
-            await t.rollback()
-            return res.status(400).json({ success: false, message: 'Invalid OTP.'})
-        }
+        const otpRecord= await readOtpFromDatabase( identifier, identifierType, requestId, context, otp, t)
+            if (!otpRecord) {
+                await t.rollback()
+                return res.status(400).json({ success: false, message: 'Invalid or expired OTP'})
+            }
 
         await otpRecord.destroy({ transaction: t })
         console.log('OTP deleted from database.')
@@ -177,6 +166,96 @@ exports.handlePostUserLogin= async(req, res)=>{
     }
 }
 
+
+exports.handlePostForgetPassword= async(req, res)=>{
+    const t= await sequelize.transaction()
+    try{
+        const { error, value } = fieldValidation_ForgotPassword.validate(req.body);
+             if (error) {
+                await t.rollback()
+                return res.status(400).json({ success: false, message: error.details[0].message })
+             }
+        const {  identifier } = value
+
+        const context= 'forgot-password'
+        let username= identifier
+
+        const identifierType= await detectIdentifierType(identifier)
+        if( identifierType === 'email') { username= await extractUsernameFromEmail(identifier) }
+
+        const user = await User.findOne({ where: { identifier: identifier, identifierType: identifierType, username: username, isActive: true } })
+            if (!user) {
+                await t.rollback()
+                return res.status(404).json({ success: false, message: 'No active user found.' })
+            }
+            
+            if(!user.password){
+                await t.rollback()
+                return res.status(404).json({ success: false, message: 'unable to update password for this account.' })
+            }
+
+        const otpRecord= await saveOtpInDatabase(identifier, identifierType, context, t)
+
+        if( identifierType === 'email')  { await sendSignUpOTP(identifier, otpRecord.otp) }
+        else if( identifierType === 'phone')  {                                           }
+
+        await t.commit() 
+        console.log(`Forgot Password OTP sent to ${identifierType}: ${identifier}`)
+
+        return res.status(200).json({ success: true,  message: `OTP sent successfully to ${identifier}`, identifier: otpRecord.reciever, identifierType: otpRecord.receiverType, requestId: otpRecord.requestId, context: otpRecord.context})
+
+    }catch(err){
+        if (t) await t.rollback()
+        console.error('Error in Forgot password controller:', err.message)
+        return res.status(500).json({ success: false, message: 'Internal server error' })
+    }
+}
+
+
+exports.handlePostResetPasswordOtp= async(req, res)=>{
+    const t= await sequelize.transaction()
+    try{
+        const { error, value } = fieldValidation_ResetPasswordOtp.validate(req.body)
+            if (error) {
+                await t.rollback()
+                return res.status(400).json({ success: false, message: error.details[0].message })
+            }
+
+        const { identifier, otp, requestId, newPassword, context } = value
+        let username= identifier
+
+        const identifierType= await detectIdentifierType(identifier)
+            if( identifierType === 'email') { username= await extractUsernameFromEmail(identifier) }
+
+        const otpRecord= await readOtpFromDatabase( identifier, identifierType, requestId, context, otp, t)
+            if (!otpRecord) {
+                await t.rollback()
+                return res.status(400).json({ success: false, message: 'Invalid or expired OTP'})
+            }
+
+        const user = await User.findOne({ where: { identifier: identifier, identifierType: identifierType, username: username, isActive: true } })
+            if(!user){
+                await t.rollback()
+                return res.status(400).json({ success: false, message: 'no active user found'})
+            }
+
+        const hashedPassword = await hashPassword(newPassword)
+
+        user.password = hashedPassword
+        user.passwordUpdatedAt = new Date()
+        await user.save({ transaction: t })
+
+        await otpRecord.destroy({ transaction: t})
+        
+        await t.commit()
+        return res.status(200).json({ success: true, message: 'Password updated successfully.'})
+
+    }catch(err){
+        if(t) await t.rollback()
+        console.log('OTP verification error:', err)
+        return res.status(500).json({ success: false, message: 'Internal server error.'})
+    }
+}
 
 
 
