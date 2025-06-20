@@ -19,26 +19,25 @@ exports.handlePostUserCommunicationDetails= async(req, res)=>{
           return res.status(400).json({ success: false, message: error.details[0].message })
         }
         
-        const { email, phone, name, lastName, gender, city, role } = value
-
-        const existingProfile= await handleCheckProfileExist(user, role, t)
-            if (existingProfile) {
-              await t.rollback()
-              return res.status(400).json({ success: false, message: 'profile already exists for this user.' })
-            }
-
+        const { email, phone, name, lastName, pincode, city, role } = value
         let profile
         const context= 'communication-details-verification'
+        
+        const existingProfile= await handleCheckProfileExist(user, role, t)
+            if (existingProfile) {
+                    await t.rollback()
+                    return res.status(400).json({ success: false, message: 'profile already exists for this user.' })
+            }
 
         if( role === 'customer'){
-             profile= await handleCustomerCommunicationProfile(user, t, email, phone, name, lastName, gender, city, role)
+             profile= await handleCustomerCommunicationProfile(user, t, email, phone, name, lastName, pincode, city, role)
                 if( profile.isContactPhoneVerified === true || profile.isContactEmailVerified === true){
                     console.log('Customer profile created. No Email verification needed.')
                     return res.status(201).json({ success: true, message: 'Customer profile created. No Email verification needed.', profile: profile })
                 }
 
         }else if( role === 'owner'){
-             profile= await handleOwnerCommunicationProfile(user, t, email, phone, name, lastName, gender, city, role)
+             profile= await handleOwnerCommunicationProfile(user, t, email, phone, name, lastName, pincode, city, role)
                 if( profile.isContactPhoneVerified === true || profile.isContactEmailVerified === true){
                   console.log('Owner profile created. No Email verification needed.')
                   return res.status(201).json({ success: true, message: 'Owner profile created. No Email verification needed.', profile: profile })
@@ -64,16 +63,17 @@ exports.handlePostUserCommunicationDetails= async(req, res)=>{
 
 
 exports.handlePostUserCommunicationEmailVerify= async(req, res)=>{
-  const t = await sequelize.transaction()
+  let t
   try {
       const { error, value } = fieldValidation_emailVerification.validate(req.body);
       if (error) {
-        await t.rollback()
         return res.status(400).json({ success: false, message: error.details[0].message })
       }
 
       const user= req.user
       const { email, otp, context, requestId, role } = value
+
+      t = await sequelize.transaction()
 
       const otpRecord = await OTP.findOne({
         where: {

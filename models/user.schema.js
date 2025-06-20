@@ -30,8 +30,9 @@ const User = sequelize.define('User', {
     type: DataTypes.DATE
   },
   role: {
-    type: DataTypes.ENUM('owner', 'customer', 'admin'),
-    allowNull: true
+    type: DataTypes.ENUM('guest', 'owner', 'customer', 'admin'),
+    allowNull: false,
+    defaultValue: 'guest'
   },
   authProvider: {
     type: DataTypes.ENUM('local', 'google', 'facebook'),

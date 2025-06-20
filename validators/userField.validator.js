@@ -99,11 +99,14 @@ exports.fieldValidation_customerProfile = Joi.object({
         'string.min': 'City must be at least 2 characters.'
       }),
 
-    gender: Joi.string()
-      .valid('male', 'female', 'others')
+    pincode: Joi.string()
+      .length(6)
+      .pattern(/^\d{6}$/)
       .required()
       .messages({
-        'string.empty': 'Gender is required.',
+        'string.empty': 'Pincode is required.',
+        'string.length': 'Pincode must be exactly 6 digits.',
+        'string.pattern.base': 'Pincode must contain only digits.',
       }),
 
     role: Joi.string()

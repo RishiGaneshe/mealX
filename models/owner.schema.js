@@ -71,7 +71,7 @@ const OwnerProfile = sequelize.define('MessOwnerProfile', {
     },
     pincode: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: false
     },
     messCount: {
       type: DataTypes.INTEGER,

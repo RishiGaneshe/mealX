@@ -4,14 +4,14 @@ const CustomerProfile= require('../models/customers.schema')
 
 
 
-exports.handleCustomerCommunicationProfile= async(user, t, email, phone, name, lastName, gender, city, role)=>{
+exports.handleCustomerCommunicationProfile= async(user, t, email, phone, name, lastName, pincode, city, role)=>{
     try{
           const profile = await CustomerProfile.create({
               userId: user.id,
               identifier: user.identifier,
               identifierType: user.identifierType,
               customerName: `${name} ${lastName}`,
-              gender: gender,
+              pincode: pincode,
               contactNumber: phone,
               contactEmail: email,
               city: city,
@@ -54,14 +54,14 @@ exports.handleCustomerCommunicationProfile= async(user, t, email, phone, name, l
 }
 
 
-exports.handleOwnerCommunicationProfile= async(user, t, email, phone, name, lastName, gender, city, role)=>{
+exports.handleOwnerCommunicationProfile= async(user, t, email, phone, name, lastName, pincode, city, role)=>{
   try{
         const profile = await OwnerProfile.create({
             userId: user.id,
             identifier: user.identifier,
             identifierType: user.identifierType,
             ownerName: `${name} ${lastName}`,
-            gender: gender,
+            pincode: pincode,
             contactNumber: phone,
             contactEmail: email,
             city: city,

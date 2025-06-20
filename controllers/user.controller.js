@@ -10,15 +10,17 @@ const { fieldValidation_SignUp, fieldValidation_SignUpVerifyOTP, fieldValidation
 const { extractUsernameFromEmail, detectIdentifierType }= require('../services/miscellaneous_services_')
 const { Op } = require('sequelize')
 const { saveOtpInDatabase, readOtpFromDatabase }= require('../database/otp_services_')
+const { OAuth2Client } = require('google-auth-library')
 
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
 
 
 exports.handleSendEmailForSignUp = async (req, res) => {
-    const t= await sequelize.transaction()
+    let t
     try{
         const { error, value }= fieldValidation_SignUp.validate(req.body)
         if( error ){
-            await t.rollback()
             return res.status(400).json({ success: false, message: error.details[0].message })
         }
 
@@ -28,58 +30,82 @@ exports.handleSendEmailForSignUp = async (req, res) => {
 
         const identifierType= await detectIdentifierType(identifier)
         if( identifierType === 'email') { username= await extractUsernameFromEmail(identifier) }
-    
-        const existingUser= await User.findOne({ where: { identifier: identifier, identifierType: identifierType, username: username },
+
+        t= await sequelize.transaction()
+
+        const existingUser= await User.findOne({ where: { identifier: identifier, identifierType: identifierType },
             transaction: t,
         })
 
+        const hashedPassword = await hashPassword(password)
+
         if (existingUser) {
-            await t.rollback()
-            return res.status(400).json({ success: false, message: 'User already exist' })
+            if (existingUser.isActive) {
+                await t.rollback();
+                return res.status(400).json({ success: false, message: 'A active user exist already'})
+            }
+            await User.update(
+                {
+                    username: username,
+                    identifier: identifier,
+                    identifierType: identifierType,
+                    password: hashedPassword,
+                    passwordUpdatedAt: new Date(),
+                    isActive: false,
+                },
+                {
+                    where: { id: existingUser.id },
+                    transaction: t, 
+                }
+            )
+
+        }else{
+            await User.create(
+                {
+                  id: crypto.randomBytes(8).toString('hex'),
+                  identifier: identifier,
+                  identifierType: identifierType,
+                  username: username,
+                  password: hashedPassword,
+                  isActive: false,
+                  passwordUpdatedAt: new Date(),
+                },
+                { transaction: t }
+              )
         }
 
-        const hashedPassword = await hashPassword(password)
-        const newUser = await User.create(
-            {
-              id: crypto.randomBytes(8).toString('hex'),
-              identifier: identifier,
-              identifierType: identifierType,
-              username: username,
-              password: hashedPassword,
-              isActive: false,
-              passwordUpdatedAt: new Date(),
-            },
-            { transaction: t }
-          )
-        
         const otpRecord= await saveOtpInDatabase(identifier, identifierType, context, t)
               
-        if( identifierType === 'email')  { await sendSignUpOTP(identifier, otpRecord.otp) }
-        else if( identifierType === 'phone')  {                                           }
+        if( identifierType === 'email') {
+             await sendSignUpOTP(identifier, otpRecord.otp) 
+        } else if( identifierType === 'phone'){                                           
+             // function to send otp to phone number.
+        }
 
         await t.commit() 
-        console.log(`OTP sent to ${identifierType} ${identifier}`)
+        console.log(`OTP sent to ${identifierType}: ${identifier}`)
 
-        return res.status(200).json({ success: true,  message: `OTP sent successfully to ${identifier}`, identifier: otpRecord.reciever, identifierType: otpRecord.receiverType, requestId: otpRecord.requestId, context: otpRecord.context})
+        return res.status(200).json({ success: true,  message: `OTP sent successfully to: ${identifier}`, identifier: otpRecord.reciever, identifierType: otpRecord.receiverType, requestId: otpRecord.requestId, context: otpRecord.context})
         
     }catch(err){
         if (t) await t.rollback()
         console.error('Error in signup controller:', err.message)
-        return res.status(500).json({ success: false, message: 'Internal server error' })
+        return res.status(500).json({ success: false, message: 'Internal Server Error' })
     }
 }
 
 
 exports.handlePostOTPVerification= async(req, res)=>{
-    const t= await sequelize.transaction()
+    let t
     try{
         const { error, value}= fieldValidation_SignUpVerifyOTP.validate(req.body)
             if (error) {
-                await t.rollback()
                 return res.status(400).json({ success: false, message: error.details[0].message })
             }
 
         const { identifier, identifierType, otp, context, requestId } = value
+
+        t= await sequelize.transaction()
 
         const otpRecord= await readOtpFromDatabase( identifier, identifierType, requestId, context, otp, t)
             if (!otpRecord) {
@@ -107,25 +133,21 @@ exports.handlePostOTPVerification= async(req, res)=>{
         await t.commit()
         
         const user= updatedUsers[0]
-        let role= user.role
-            if(role === null || role === undefined ){
-                role= 'null'
-            }
-        const token= await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, role)
+    
+        const token= await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.role)
         
         console.log('OTP verified. Registration completed. Token sent.')
-        return res.status(201).json({ success: true, message: 'OTP verified successfully.Registration completed.', token: token})
+        return res.status(201).json({ success: true, message: 'OTP verified successfully.Registration completed.', token: token, id: user.id, identifier: identifier, identifierType: identifierType, role: user.role })
 
     }catch(err){
         if(t) await t.rollback()
         console.log('OTP verification error:', err)
-        return res.status(500).json({ success: false, message: 'Internal server error.'})
+        return res.status(500).json({ success: false, message: 'Internal Server Error'})
     }
 }
 
 
 exports.handlePostUserLogin= async(req, res)=>{
-    const t= await sequelize.transaction()
     try{
         const { error, value}= fieldValidation_Login.validate(req.body)
             if (error) {
@@ -142,20 +164,16 @@ exports.handlePostUserLogin= async(req, res)=>{
             }
         })
             if (!user) {
-                await verifyPassword( process.env.DummyHash, password)
-                return res.status(401).json({ success: false, message: 'Invalid email or password' })
+                await verifyPassword( '$argon2d$v=19$m=12,t=3,p=1$ajUydGFhaWw4ZTAwMDAwMA$MRhztKGcPpp8tyzeH9LvDQ', password)
+                return res.status(401).json({ success: false, message: 'Invalid Credentials' })
             }
 
         const isMatch = await verifyPassword(user.password, password)
             if (!isMatch) {
-                return res.status(401).json({ success: false, message: 'Invalid email or password' })
+                return res.status(401).json({ success: false, message: 'Invalid Credentials' })
             }
 
-        let role= user.role
-            if(role === null || role === undefined ){
-                role= 'null'
-            }
-        const token= await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, role)
+        const token= await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.role)
 
         console.log('Login Successful.')
         return res.status(200).json({ success: true, message: 'Login successful', token, user: { id: user.id, identifier: user.identifier, username: user.username, role: user.role } })
@@ -168,22 +186,20 @@ exports.handlePostUserLogin= async(req, res)=>{
 
 
 exports.handlePostForgetPassword= async(req, res)=>{
-    const t= await sequelize.transaction()
+    let t
     try{
         const { error, value } = fieldValidation_ForgotPassword.validate(req.body);
              if (error) {
-                await t.rollback()
                 return res.status(400).json({ success: false, message: error.details[0].message })
              }
+
         const {  identifier } = value
-
         const context= 'forgot-password'
-        let username= identifier
-
         const identifierType= await detectIdentifierType(identifier)
-        if( identifierType === 'email') { username= await extractUsernameFromEmail(identifier) }
 
-        const user = await User.findOne({ where: { identifier: identifier, identifierType: identifierType, username: username, isActive: true } })
+        t= await sequelize.transaction()
+
+        const user = await User.findOne({ where: { identifier: identifier, identifierType: identifierType, isActive: true } })
             if (!user) {
                 await t.rollback()
                 return res.status(404).json({ success: false, message: 'No active user found.' })
@@ -200,32 +216,30 @@ exports.handlePostForgetPassword= async(req, res)=>{
         else if( identifierType === 'phone')  {                                           }
 
         await t.commit() 
-        console.log(`Forgot Password OTP sent to ${identifierType}: ${identifier}`)
 
-        return res.status(200).json({ success: true,  message: `OTP sent successfully to ${identifier}`, identifier: otpRecord.reciever, identifierType: otpRecord.receiverType, requestId: otpRecord.requestId, context: otpRecord.context})
+        console.log(`Forgot Password OTP sent to ${identifierType}: ${identifier}`)
+        return res.status(200).json({ success: true,  message: `OTP sent successfully to ${identifier}`, identifier: identifier, identifierType: identifierType, requestId: otpRecord.requestId, context: otpRecord.context })
 
     }catch(err){
         if (t) await t.rollback()
         console.error('Error in Forgot password controller:', err.message)
-        return res.status(500).json({ success: false, message: 'Internal server error' })
+        return res.status(500).json({ success: false, message: 'Internal Server Error' })
     }
 }
 
 
 exports.handlePostResetPasswordOtp= async(req, res)=>{
-    const t= await sequelize.transaction()
+    let t
     try{
         const { error, value } = fieldValidation_ResetPasswordOtp.validate(req.body)
             if (error) {
-                await t.rollback()
                 return res.status(400).json({ success: false, message: error.details[0].message })
             }
 
         const { identifier, otp, requestId, newPassword, context } = value
-        let username= identifier
-
         const identifierType= await detectIdentifierType(identifier)
-            if( identifierType === 'email') { username= await extractUsernameFromEmail(identifier) }
+
+        t= await sequelize.transaction()
 
         const otpRecord= await readOtpFromDatabase( identifier, identifierType, requestId, context, otp, t)
             if (!otpRecord) {
@@ -233,7 +247,7 @@ exports.handlePostResetPasswordOtp= async(req, res)=>{
                 return res.status(400).json({ success: false, message: 'Invalid or expired OTP'})
             }
 
-        const user = await User.findOne({ where: { identifier: identifier, identifierType: identifierType, username: username, isActive: true } })
+        const user = await User.findOne({ where: { identifier: identifier, identifierType: identifierType, isActive: true } })
             if(!user){
                 await t.rollback()
                 return res.status(400).json({ success: false, message: 'no active user found'})
@@ -248,12 +262,79 @@ exports.handlePostResetPasswordOtp= async(req, res)=>{
         await otpRecord.destroy({ transaction: t})
         
         await t.commit()
+
+        console.log('Password updated successfully.')
         return res.status(200).json({ success: true, message: 'Password updated successfully.'})
 
     }catch(err){
         if(t) await t.rollback()
         console.log('OTP verification error:', err)
-        return res.status(500).json({ success: false, message: 'Internal server error.'})
+        return res.status(500).json({ success: false, message: 'Internal Server Error'})
+    }
+}
+
+
+exports.handlePostGoogleAuth = async (req, res) => {
+    let { idToken } = req.body
+  
+    if (!idToken) {
+      return res.status(400).json({ success: false, message: 'Missing fields' })
+    }
+  
+    let payload
+    try {
+      const ticket = await client.verifyIdToken({
+        idToken,
+        audience: process.env.GOOGLE_CLIENT_ID
+      })
+      payload = ticket.getPayload()
+    } catch (err) {
+      return res.status(401).json({ success: false, message: 'Invalid Google token' })
+    }
+  
+    const { email, name, sub: googleId } = payload
+
+    let t
+    try {
+      t = await sequelize.transaction()
+
+      let user = await User.findOne({
+        where: { identifier: email, identifierType: 'email' },
+        transaction: t
+      })
+  
+      if (!user) {
+            const base = name.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 10)
+            const suffix = Math.floor(1000 + Math.random() * 9000)
+            const username = `${base}${suffix}`
+    
+            user = await User.create({
+                id: crypto.randomBytes(8).toString('hex'),
+                identifier: email,
+                identifierType: 'email',
+                username: username,
+                authProvider: 'google',
+                providerId: googleId,
+                isActive: true
+            }, { transaction: t })
+    
+            await t.commit()
+
+            const token = await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.role)
+            return res.status(201).json({ success: true, message: 'Google signup successful', token: token, id: user.id, username: user.username, identifier: user.identifierType, identifierType: user.identifierType, role: user.role })
+
+      } else {
+
+            await t.commit()
+
+            const token = await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.role)
+            return res.status(200).json({ success: true, message: 'Google login successful', token: token, id: user.id, username: user.username, identifier: user.identifierType, identifierType: user.identifierType, role: user.role })
+      }
+
+    } catch (err) {
+      if (t) await t.rollback()
+      console.error('Google Auth Error:', err.message);
+      return res.status(500).json({ success: false, message: 'Internal Server Error' })
     }
 }
 

@@ -70,7 +70,7 @@ const CustomerProfile= sequelize.define('CustomerProfile',{
     },
     pincode: {
         type: DataTypes.STRING,
-        allowNull: true
+        allowNull: false
     }
   }, {
     timestamps: true,

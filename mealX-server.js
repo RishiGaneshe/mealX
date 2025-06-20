@@ -9,6 +9,7 @@ const CUSTOMER= require('./routes/customer.routes.js')
 const AUTHENTICATE= require('./routes/authenticate.routes.js')
 const { tokenAuthentication }= require('./middlewares/authentication.middleware.js')
 const { setRoleCustomer, setRoleOwner, setRoleAdmin }= require('./middlewares/role.middleware.js')
+const { CronJobsToDeleteDatabaseDocuments }= require('./services/cron_jobs_services_.js')
 
 const app= express()
 const port= process.env.PORT || 9000
@@ -16,13 +17,16 @@ const port= process.env.PORT || 9000
 
 redisConnection()
 handlePostgreSQLConnection()
+CronJobsToDeleteDatabaseDocuments()
 
 
 const allowedOrigins = [
     'http://192.168.1.1:8081', 'http://192.168.1.3:8081', 'http://192.168.1.4:8081', 'http://192.168.1.5:8081', 
     'http://192.168.1.6:8081', 'http://192.168.1.7:8081', 'http://192.168.1.8:8081', 'http://192.168.1.9:8081', 
-    'http://192.168.1.10:8081', 'http://192.168.29.37:5173'
+    'http://192.168.1.10:8081', 'http://192.168.29.37:5173', 'http://192.168.1.24:5173', 'http://localhost:5173',
+    'http://192.168.213.94:8081', 'http://localhost:8081'
 ]
+
 app.use(cors({
     origin: (origin, callback) => {
         if (!origin || allowedOrigins.includes(origin.replace(/\/$/, ""))) { 

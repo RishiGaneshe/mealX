@@ -1,7 +1,7 @@
 const { verifyToken }= require('../services/jwt_services_.js')
 const secret= process.env.Secret
 const { redisClient }= require('../services/redis_services_.js')
-
+const User= require('../models/user.schema.js')
 
 
 exports.tokenAuthentication = async (req, res, next) => {
@@ -44,16 +44,22 @@ exports.tokenAuthentication = async (req, res, next) => {
         }
 
         req.user= user
+        let role
         if (req.requiredRole) {
-            const userRole = req.user.role
-            if (!req.requiredRole.includes(userRole)) {
-                return res.status(403).json({ success: false, message: 'Access denied. You do not have permission.' });
+            role= req.user.role
+            if( role === 'guest' ){
+                const user = await User.findOne({ where: { username: req.user.username, identifier: req.user.identifier, isActive: true } })
+                role= user.role
+            }
+
+            if (!req.requiredRole.includes(role)) {
+                return res.status(403).json({ success: false, message: 'Access denied' })
             }
         }
         next()
 
     } catch (err) {
-        console.error("Error in the Token-authentication Middleware: " + err.message);
-        return res.status(500).json({ success: false, message: "Internal Server Error." });
+        console.error("Error in the Token-authentication Middleware: " + err.message)
+        return res.status(500).json({ success: false, message: "Internal Server Error." })
     }
 }
