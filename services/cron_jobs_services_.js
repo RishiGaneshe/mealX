@@ -3,6 +3,7 @@ const { Op } = require('sequelize');
 const User = require('../models/user.schema')
 const MessProfile= require('../models/mess.schema')
 const CustomerProfile= require('../models/customers.schema')
+const OTP= require('../models/otp.schema')
 const { sequelize } = require('../services/connection_services_')
 const OTP_EXPIRY_MINUTES= parseInt(process.env.OTP_EXPIRY_MINUTES || '5', 10)
 
@@ -54,6 +55,30 @@ exports.CronJobsToDeleteDatabaseDocuments= async()=>{
                  console.log(`[CRON] Deleted ${deleted} document(s) from mess_profile older than 5 minutes.`)
               }
 
+            } catch (error) {
+              await t.rollback()
+              console.error(`[CRON] Error during cleanup:`, error)
+            }
+          })
+
+
+          cron.schedule('* * * * *', async () => {
+            
+            const fiveMinutesAgo = new Date(Date.now() - OTP_EXPIRY_MINUTES * 60 * 1000)
+            const t = await sequelize.transaction()
+            try {
+              const deleted = await OTP.destroy({
+                where: {
+                  updatedAt: { [Op.lt]: fiveMinutesAgo }
+                },
+                transaction: t
+              })
+          
+              await t.commit()
+              if(deleted){
+                 console.log(`[CRON] Deleted ${deleted} expired document(s) from otps table.`)
+              }
+              
             } catch (error) {
               await t.rollback()
               console.error(`[CRON] Error during cleanup:`, error)

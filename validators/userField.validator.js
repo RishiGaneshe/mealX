@@ -197,4 +197,30 @@ exports.fieldValidation_ResetPasswordOtp = Joi.object({
     })
 })
 
+
+exports.fieldValidation_validateResendOTP = Joi.object({
+  requestId: Joi.string()
+    .guid({ version: 'uuidv4' })
+    .required()
+    .messages({
+      'string.guid': 'Invalid requestId format.',
+      'any.required': 'Request ID is required.'
+    }),
+
+  context: Joi.string()
+    .trim()
+    .required()
+    .messages({
+      'string.empty': 'Context is required.'
+    }),
+
+  identifier: Joi.string()
+    .trim()
+    .required()
+    .messages({
+      'string.empty': 'Identifier (email or phone) is required.'
+    })
+})
+
+
   

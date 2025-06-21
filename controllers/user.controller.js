@@ -6,7 +6,7 @@ const { createJwtToken }= require('../services/jwt_services_')
 const { sendSignUpOTP }= require('../services/email_services_')
 const { hashPassword, verifyPassword }= require('../services/hashing_services_')
 const { sequelize } = require('../services/connection_services_')
-const { fieldValidation_SignUp, fieldValidation_SignUpVerifyOTP, fieldValidation_Login, fieldValidation_ForgotPassword, fieldValidation_ResetPasswordOtp }= require('../validators/userField.validator')
+const { fieldValidation_SignUp, fieldValidation_SignUpVerifyOTP, fieldValidation_Login, fieldValidation_ForgotPassword, fieldValidation_ResetPasswordOtp, fieldValidation_validateResendOTP }= require('../validators/userField.validator')
 const { extractUsernameFromEmail, detectIdentifierType }= require('../services/miscellaneous_services_')
 const { Op } = require('sequelize')
 const { saveOtpInDatabase, readOtpFromDatabase }= require('../database/otp_services_')
@@ -337,6 +337,70 @@ exports.handlePostGoogleAuth = async (req, res) => {
       return res.status(500).json({ success: false, message: 'Internal Server Error' })
     }
 }
+
+
+exports.resendOTP = async (req, res) => {
+    const { error, value } = fieldValidation_validateResendOTP.validate(req.body)
+    if (error) {
+      return res.status(400).json({ success: false, message: error.details[0].message })
+    }
+  
+    const { requestId, context, identifier } = value
+  
+    const t = await sequelize.transaction()
+  
+    try {
+      const otpRecord = await OTP.findOne({
+            where: {
+            requestId,
+            context,
+            reciever: identifier
+            },
+            transaction: t,
+            lock: t.LOCK.UPDATE
+      })
+  
+      if (!otpRecord) {
+        await t.rollback()
+        return res.status(410).json({ success: false, message: 'OTP has expired.' })
+      }
+  
+      if (new Date() > otpRecord.expiresAt) {
+        await t.rollback()
+        return res.status(410).json({ success: false, message: 'OTP has expired.' })
+      }
+      
+      if (otpRecord.resendCount >= 5) {
+        await t.rollback()
+        return res.status(429).json({ success: false, message: 'Maximum resend limit reached.' })
+      }
+  
+      if (otpRecord.receiverType === 'email') {
+            await sendSignUpOTP(identifier, otpRecord.otp)
+      } else if (otpRecord.receiverType === 'phone') {
+            
+      } else {
+            await t.rollback()
+            return res.status(400).json({ success: false, message: 'Invalid receiver type.' })
+      }
+  
+      otpRecord.resendCount += 1
+      await otpRecord.save({ transaction: t })
+  
+      await t.commit()
+
+      console.log('Resend OTP resent successfully.', otpRecord.otp)
+      return res.status(200).json({ success: true, message: 'Resend OTP resent successfully.', identifier: identifier, identifierType: otpRecord.receiverType, requestId: otpRecord.requestId, context: otpRecord.context, resendCount: otpRecord.resendCount })
+  
+    } catch (err) {
+      await t.rollback()
+      console.error('[resendOTP Error]', err)
+      return res.status(500).json({ success: false, message: 'Internal Server Error' })
+    }
+}
+
+
+
 
 
 

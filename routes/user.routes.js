@@ -17,6 +17,8 @@ router.post('/forget-password/otp', USER.handlePostResetPasswordOtp)
 
 router.post('/google-auth', USER.handlePostGoogleAuth)
 
+router.post('/resend-otp', USER.resendOTP)
+
 
 
 module.exports= router
