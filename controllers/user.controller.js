@@ -285,7 +285,7 @@ exports.handlePostGoogleAuth = async (req, res) => {
     try {
       const ticket = await client.verifyIdToken({
         idToken,
-        audience: process.env.GOOGLE_CLIENT_ID
+        audience: '886086124566-c780dbmdcbjg5nq4v1ju5arpvgfldb0o.apps.googleusercontent.com' || process.env.GOOGLE_CLIENT_ID
       })
       payload = ticket.getPayload()
     } catch (err) {
@@ -319,15 +319,17 @@ exports.handlePostGoogleAuth = async (req, res) => {
             }, { transaction: t })
     
             await t.commit()
-
             const token = await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.role)
+
+            console.log('Google signup successful')
             return res.status(201).json({ success: true, message: 'Google signup successful', token: token, id: user.id, username: user.username, identifier: user.identifierType, identifierType: user.identifierType, role: user.role })
 
       } else {
 
             await t.commit()
-
             const token = await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.role)
+
+            console.log('Google signup successful')
             return res.status(200).json({ success: true, message: 'Google login successful', token: token, id: user.id, username: user.username, identifier: user.identifierType, identifierType: user.identifierType, role: user.role })
       }
 
