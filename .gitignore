@@ -2,7 +2,9 @@
 node_modules/
 logs/
 *.log
-configs/
+configs/**
+!configs/
+!.gitkeep
 Dockerfile
 docker-compose.yml
 .dockerignore
