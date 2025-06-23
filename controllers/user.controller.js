@@ -160,7 +160,6 @@ exports.handlePostUserLogin= async(req, res)=>{
     try{
         const { error, value}= fieldValidation_Login.validate(req.body)
             if (error) {
-                await t.rollback()
                 return res.status(400).json({ success: false, message: error.details[0].message })
             }
 
