@@ -1,16 +1,17 @@
 const crypto= require('crypto')
+const { Op } = require('sequelize')
 const { v4: uuidv4 } = require('uuid')
 const OTP= require('../models/otp.schema')
 const User= require('../models/user.schema')
+const { OAuth2Client } = require('google-auth-library')
 const { createJwtToken }= require('../services/jwt_services_')
 const { sendSignUpOTP }= require('../services/email_services_')
-const { hashPassword, verifyPassword }= require('../services/hashing_services_')
 const { sequelize } = require('../services/connection_services_')
-const { fieldValidation_SignUp, fieldValidation_SignUpVerifyOTP, fieldValidation_Login, fieldValidation_ForgotPassword, fieldValidation_ResetPasswordOtp, fieldValidation_validateResendOTP }= require('../validators/userField.validator')
-const { extractUsernameFromEmail, detectIdentifierType }= require('../services/miscellaneous_services_')
-const { Op } = require('sequelize')
+const { getFacebookAccessToken, getFacebookUserProfile}= require('../services/fb_auth_services_')
+const { hashPassword, verifyPassword }= require('../services/hashing_services_')
 const { saveOtpInDatabase, readOtpFromDatabase }= require('../database/otp_services_')
-const { OAuth2Client } = require('google-auth-library')
+const { extractUsernameFromEmail, detectIdentifierType }= require('../services/miscellaneous_services_')
+const { fieldValidation_SignUp, fieldValidation_SignUpVerifyOTP, fieldValidation_Login, fieldValidation_ForgotPassword, fieldValidation_ResetPasswordOtp, fieldValidation_validateResendOTP }= require('../validators/userField.validator')
 
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
@@ -52,6 +53,10 @@ exports.handleSendEmailForSignUp = async (req, res) => {
                     password: hashedPassword,
                     passwordUpdatedAt: new Date(),
                     isActive: false,
+                    isOwner: false,
+                    isCustomer: false,
+                    isAdmin: false,
+                    isGuest: true
                 },
                 {
                     where: { id: existingUser.id },
@@ -69,6 +74,10 @@ exports.handleSendEmailForSignUp = async (req, res) => {
                   password: hashedPassword,
                   isActive: false,
                   passwordUpdatedAt: new Date(),
+                  isOwner: false,
+                  isCustomer: false,
+                  isAdmin: false,
+                  isGuest: true
                 },
                 { transaction: t }
               )
@@ -134,7 +143,7 @@ exports.handlePostOTPVerification= async(req, res)=>{
         
         const user= updatedUsers[0]
     
-        const token= await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.role)
+        const token= await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.isOwner, user.isCustomer, user.isAdmin)
         
         console.log('OTP verified. Registration completed. Token sent.')
         return res.status(201).json({ success: true, message: 'OTP verified successfully.Registration completed.', token: token, id: user.id, identifier: identifier, identifierType: identifierType, role: user.role })
@@ -173,10 +182,10 @@ exports.handlePostUserLogin= async(req, res)=>{
                 return res.status(401).json({ success: false, message: 'Invalid Credentials' })
             }
 
-        const token= await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.role)
+        const token= await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.isOwner, user.isCustomer, user.isAdmin)
 
         console.log('Login Successful.')
-        return res.status(200).json({ success: true, message: 'Login successful', token, user: { id: user.id, identifier: user.identifier, username: user.username, role: user.role } })
+        return res.status(200).json({ success: true, message: 'Login successful', token, user: { id: user.id, identifier: user.identifier, username: user.username, isOwner: user.isOwner, isCustomer: user.isCustomer, isAdmin: user.isAdmin } })
 
     }catch(err){
         console.error('Login error:', err)
@@ -302,7 +311,7 @@ exports.handlePostGoogleAuth = async (req, res) => {
         where: { identifier: email, identifierType: 'email' },
         transaction: t
       })
-  
+
       if (!user) {
             const base = name.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 10)
             const suffix = Math.floor(1000 + Math.random() * 9000)
@@ -315,22 +324,32 @@ exports.handlePostGoogleAuth = async (req, res) => {
                 username: username,
                 authProvider: 'google',
                 providerId: googleId,
-                isActive: true
+                isActive: true,
+                isOwner: false,
+                isCustomer: false,
+                isAdmin: false,
+                isGuest: true
+
             }, { transaction: t })
     
             await t.commit()
-            const token = await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.role)
+            const token = await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.isOwner, user.isCustomer, user.isAdmin)
 
             console.log('Google signup successful')
-            return res.status(201).json({ success: true, message: 'Google signup successful', token: token, id: user.id, username: user.username, identifier: user.identifierType, identifierType: user.identifierType, role: user.role })
+            return res.status(201).json({ success: true, message: 'Google signup successful', token: token, id: user.id, username: user.username, identifier: user.identifier, identifierType: user.identifierType, isOwner: user.isOwner, isCustomer: user.isCustomer, isAdmin: user.isAdmin })
 
       } else {
 
+            if(user.authProvider !== 'google'){
+                await t.rollback()
+                return res.status(403).json({ success: false, message: `Email already exist. Cannot proceed.` })
+            }
+
             await t.commit()
-            const token = await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.role)
+            const token = await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.isOwner, user.isCustomer, user.isAdmin)
 
             console.log('Google signup successful')
-            return res.status(200).json({ success: true, message: 'Google login successful', token: token, id: user.id, username: user.username, identifier: user.identifierType, identifierType: user.identifierType, role: user.role })
+            return res.status(200).json({ success: true, message: 'Google login successful', token: token, id: user.id, username: user.username, identifier: user.identifier, identifierType: user.identifierType, isOwner: user.isOwner, isCustomer: user.isCustomer, isAdmin: user.isAdmin })
       }
 
     } catch (err) {
@@ -398,6 +417,65 @@ exports.resendOTP = async (req, res) => {
       await t.rollback()
       console.error('[resendOTP Error]', err)
       return res.status(500).json({ success: false, message: 'Internal Server Error' })
+    }
+}
+
+
+exports.handleFacebookAuth= async(req, res)=>{
+    try{
+        const { code } = req.body
+            if (typeof code !== 'string' || !code.trim()) {
+                return res.status(400).json({ success: false, message: 'Invalid code' })
+            }
+          
+        const accessToken = await getFacebookAccessToken(code)
+        const fbProfile = await getFacebookUserProfile(accessToken)
+
+        if (!fbProfile.id) {
+            return res.status(400).json({ success: false, message: 'Invalid Facebook profile data' })
+        }
+
+        if (!fbProfile.email) {
+            return res.status(400).json({ success: false, message: 'Facebook account does not have an email. Cannot proceed.' });
+        }
+
+        let user = await User.findOne({
+            where: {
+              identifier: fbProfile.email,
+              identifierType: 'email',
+            }
+        })
+
+        let username= await extractUsernameFromEmail(fbProfile.email)
+
+        if (!user) {
+            user = await User.create({
+              username: username,
+              identifier: fbProfile.email,
+              identifierType: 'email',
+              authProvider: 'facebook',
+              providerId: fbProfile.id,
+              isActive: true,
+              isOwner: false,
+              isCustomer: false,
+              isAdmin: false,
+              isGuest: true
+            })
+
+            const token = await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.isOwner, user.isCustomer, user.isAdmin)
+            return res.status(200).json({ success: true, message: 'Facebook sign-up successful', token: token, id: user.id, username: user.username, identifier: user.identifier, identifierType: user.identifierType, isOwner: user.isOwner, isCustomer: user.isCustomer, isAdmin: user.isAdmin })
+        }
+
+        if(user.authProvider !== 'facebook'){
+            return res.status(403).json({ success: false, message: `Email already exist. Cannot proceed.` })
+        }
+
+        const token = await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.isOwner, user.isCustomer, user.isAdmin)
+        return res.status(200).json({ success: true, message: 'Facebook login successful', token: token, id: user.id, username: user.username, identifier: user.identifier, identifierType: user.identifierType, isOwner: user.isOwner, isCustomer: user.isCustomer, isAdmin: user.isAdmin })
+
+    }catch(err){
+        console.error('[Facebook Login Error]', err.message)
+        return res.status(500).json({ success: false, message: 'Facebook login failed.Server Error.' })
     }
 }
 

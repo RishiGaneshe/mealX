@@ -29,10 +29,21 @@ const User = sequelize.define('User', {
   passwordUpdatedAt: {
     type: DataTypes.DATE
   },
-  role: {
-    type: DataTypes.ENUM('guest', 'owner', 'customer', 'admin'),
-    allowNull: false,
-    defaultValue: 'guest'
+  isOwner: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  isCustomer: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  isAdmin: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  isGuest:{
+    type: DataTypes.BOOLEAN,
+    defaultValue: true
   },
   authProvider: {
     type: DataTypes.ENUM('local', 'google', 'facebook'),
