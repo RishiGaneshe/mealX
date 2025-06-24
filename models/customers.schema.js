@@ -19,7 +19,6 @@ const CustomerProfile= sequelize.define('CustomerProfile',{
     },
     customerName: {
         type: DataTypes.STRING,
-        allowNull: false,
     },
     mess_ids: {
         type:  DataTypes.ARRAY(DataTypes.STRING),
@@ -27,11 +26,9 @@ const CustomerProfile= sequelize.define('CustomerProfile',{
     },
     dateofbirth:{
         type: DataTypes.DATEONLY,
-        allowNull: true
     },
     gender:{
         type: DataTypes.ENUM('male', 'female', 'others'),
-        allowNull: true,
     },
     profileImage:{
         type: DataTypes.STRING(500),
@@ -40,12 +37,10 @@ const CustomerProfile= sequelize.define('CustomerProfile',{
     },
     contactNumber: {
         type: DataTypes.STRING,
-        allowNull: false,
         unique: true
     },
     contactEmail: {
         type: DataTypes.STRING,
-        allowNull: false,
         validator: { isEmail: true }
     },
     isContactEmailVerified: {
@@ -58,19 +53,15 @@ const CustomerProfile= sequelize.define('CustomerProfile',{
     },
     customerAddress:{
         type: DataTypes.STRING,
-        allowNull: true
     },
     city: {
         type: DataTypes.STRING,
-        allowNull: false
     },
     state: {
         type: DataTypes.STRING,
-        allowNull: true
     },
     pincode: {
         type: DataTypes.STRING,
-        allowNull: false
     }
   }, {
     timestamps: true,

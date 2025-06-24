@@ -3,10 +3,11 @@ const router= express.Router()
 const AUTHENTICATE= require('../controllers/authenticate.controller')
 
 
+router.post('/communication', AUTHENTICATE.handlePostSendIdentifier_Step1)
 
-router.post('/user-profile', AUTHENTICATE.handlePostUserCommunicationDetails)
+router.post('/verify/otp', AUTHENTICATE.handlePostIdentifierVerify_Step2)
 
-router.post('/verify/email', AUTHENTICATE.handlePostUserCommunicationEmailVerify)
+router.post('/user-profile', AUTHENTICATE.handlePostUserCommunicationDetails_Step3 )
 
 
 

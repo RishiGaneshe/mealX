@@ -20,7 +20,6 @@ const OwnerProfile = sequelize.define('MessOwnerProfile', {
     },
     ownerName: {
       type: DataTypes.STRING,
-      allowNull: false,
     },
     mess_ids: {
       type: DataTypes.ARRAY(DataTypes.STRING),
@@ -28,11 +27,9 @@ const OwnerProfile = sequelize.define('MessOwnerProfile', {
     },
     dateofbirth: {
       type: DataTypes.DATEONLY,
-      allowNull: true
     },
     gender: {
       type: DataTypes.ENUM('male', 'female', 'others'),
-      allowNull: true
     },
     profileImage: {
       type: DataTypes.STRING(500),
@@ -41,12 +38,10 @@ const OwnerProfile = sequelize.define('MessOwnerProfile', {
     },
     contactNumber: {
       type: DataTypes.STRING,
-      allowNull: false,
       unique: true
     },
     contactEmail: {
       type: DataTypes.STRING,
-      allowNull: false,
       validate: { isEmail: true }
     },
     isContactEmailVerified: {
@@ -59,19 +54,15 @@ const OwnerProfile = sequelize.define('MessOwnerProfile', {
     },
     ownerAddress: {
       type: DataTypes.STRING,
-      allowNull: true
     },
     city: {
       type: DataTypes.STRING,
-      allowNull: false
     },
     state: {
       type: DataTypes.STRING,
-      allowNull: true
     },
     pincode: {
       type: DataTypes.STRING,
-      allowNull: false
     },
     messCount: {
       type: DataTypes.INTEGER,

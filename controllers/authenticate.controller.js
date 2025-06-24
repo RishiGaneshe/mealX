@@ -4,86 +4,74 @@ const User= require('../models/user.schema')
 const { sendSignUpOTP }= require('../services/email_services_')
 const { sequelize } = require('../services/connection_services_')
 const { fieldValidation_customerProfile, fieldValidation_emailVerification }= require('../validators/userField.validator')
-const { handleCustomerCommunicationProfile, handleOwnerCommunicationProfile, handleCheckProfileExist, handleCheckProfileWithEmail }= require('../database/user_profile_service')
+const { handleCustomerCommunicationProfile, handleOwnerCommunicationProfile, handleCheckProfileExist, handleCreateProfile }= require('../database/user_profile_service')
 const { saveOtpInDatabase, readOtpFromDatabase }= require('../database/otp_services_')
+const { fieldValidation_identifierVerification }= require('../validators/authenticate.validation')
 
 
 
-exports.handlePostUserCommunicationDetails= async(req, res)=>{
-    const t= await sequelize.transaction()
-    try{
-        const user= req.user
-        const { error, value } = fieldValidation_customerProfile.validate(req.body)
-        if (error) {
-          await t.rollback()
-          return res.status(400).json({ success: false, message: error.details[0].message })
-        }
-        
-        const { email, phone, name, lastName, pincode, city, role } = value
-        let profile
-        const context= 'communication-details-verification'
-        
-        const existingProfile= await handleCheckProfileExist(user, role, t)
-            if (existingProfile) {
-                    await t.rollback()
-                    return res.status(400).json({ success: false, message: 'profile already exists for this user.' })
-            }
+exports.handlePostSendIdentifier_Step1= async(req, res)=>{
+  let t
+  try{
+      const { identifier }= req.body
+      const context= 'communication-identifier-verify'
 
-        if( role === 'customer'){
-             profile= await handleCustomerCommunicationProfile(user, t, email, phone, name, lastName, pincode, city, role)
-                if( profile.isContactPhoneVerified === true || profile.isContactEmailVerified === true){
-                    console.log('Customer profile created. No Email verification needed.')
-                    return res.status(201).json({ success: true, message: 'Customer profile created. No Email verification needed.', profile: profile })
-                }
-
-        }else if( role === 'owner'){
-             profile= await handleOwnerCommunicationProfile(user, t, email, phone, name, lastName, pincode, city, role)
-                if( profile.isContactPhoneVerified === true || profile.isContactEmailVerified === true){
-                  console.log('Owner profile created. No Email verification needed.')
-                  return res.status(201).json({ success: true, message: 'Owner profile created. No Email verification needed.', profile: profile })
-                }
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier)
+      const isPhone = /^[6-9]\d{9}$/.test(identifier)
+        if (!isEmail && !isPhone) {
+          return res.status(400).json({ success: false, message: 'Invalid identifier format (must be email or mobile).' })
         }
 
-        const receiverType= 'email'
-        const otpRecord= await saveOtpInDatabase(email, receiverType, context, t)
+      const receiverType = isEmail ? 'email' : 'phone'
 
-        await sendSignUpOTP(email, otpRecord.otp)
-        await t.commit()
+      t = await sequelize.transaction()
+      const otpRecord = await saveOtpInDatabase(identifier, receiverType, context, t)
+          if (receiverType === 'email') {
+              await sendSignUpOTP(identifier, otpRecord.otp)
+          } else {
+              // await sendSMSOTP(identifier, otpRecord.otp)
+          }
 
-        console.log(`OTP sent to ${email} for email verification`)
-        
-        return res.status(200).json({ success: true, message: 'profile created. Email Verification needed.', profile: profile, context: context, requestId: otpRecord.requestId, role: role })
-        
-    }catch(err){
-        if (t) await t.rollback()
-        console.error('Error creating  profile:', err)
-        return res.status(500).json({ success: false, message: 'Internal Server Error' })
-    }
+      await t.commit()
+
+      return res.status(200).json({ success: true, message: `OTP sent to your ${receiverType}.`, identifier: identifier, requestId: otpRecord.requestId, context: context })
+
+  }catch(err){
+      if (t) await t.rollback()
+      console.error('Error sending OTP:', err)
+      return res.status(500).json({ success: false, message: 'Internal Server Error' })
+  }
 }
 
 
-exports.handlePostUserCommunicationEmailVerify= async(req, res)=>{
+exports.handlePostIdentifierVerify_Step2= async(req, res)=>{
   let t
   try {
-      const { error, value } = fieldValidation_emailVerification.validate(req.body);
+      const { error, value } = fieldValidation_identifierVerification.validate(req.body)
       if (error) {
         return res.status(400).json({ success: false, message: error.details[0].message })
       }
 
       const user= req.user
-      const { email, otp, context, requestId, role } = value
+      const { identifier, otp, context, requestId, role } = value
+
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier)
+      const isPhone = /^[6-9]\d{9}$/.test(identifier)
+        if (!isEmail && !isPhone) {
+          return res.status(400).json({ success: false, message: 'Invalid identifier format (must be email or mobile).' })
+        }
+
+      const receiverType = isEmail ? 'email' : 'phone'
 
       t = await sequelize.transaction()
 
       const otpRecord = await OTP.findOne({
         where: {
-          reciever: email,
-          receiverType: 'email',
+          reciever: identifier,
           context,
           requestId,
           expiresAt: { [Op.gt]: new Date() }
         },
-        order: [['createdAt', 'DESC']],
         transaction: t,
         lock: true
       })
@@ -93,34 +81,28 @@ exports.handlePostUserCommunicationEmailVerify= async(req, res)=>{
           return res.status(400).json({ success: false, message: 'Invalid or expired OTP' })
       }
 
-      const profile = await handleCheckProfileWithEmail(user, email, role, t)
+      const profile = await handleCreateProfile(user, identifier, role, t)
           if (!profile) {
             await t.rollback()
             return res.status(404).json({ success: false, message: 'profile not found.' })
           }
       
-      profile.isContactEmailVerified = true
-      await profile.save({ transaction: t })
-      
-      const [affectedRows, updatedUsers] = await User.update(
-        { role: role },
-        { 
-          where: { username: user.username, identifier: user.identifier, id: user.id, isActive: true }, 
-          transaction: t,
-          returning: true
-        }
-      )
-      
-      if (affectedRows === 0 || updatedUsers.length === 0){
-          await t.rollback()
-          return res.status(404).json({ success: false, message: 'User not found.'})
+      if(receiverType === 'email'){
+            profile.contactEmail= identifier
+            profile.isContactEmailVerified = true
+            await profile.save({ transaction: t })
+
+      }else if (receiverType === 'phone'){
+            profile.contactNumber= identifier
+            profile.isContactNumberVerified = true
+            await profile.save({ transaction: t })
       }
 
       await otpRecord.destroy({ transaction: t })
 
       await t.commit()
 
-      console.log('Email verified successfully.')
+      console.log(`${receiverType} verified successfully for user ${user.id}`)
       return res.status(201).json({ success: true, message: 'Email verified successfully.' })
 
   } catch (err) {
@@ -129,3 +111,51 @@ exports.handlePostUserCommunicationEmailVerify= async(req, res)=>{
       return res.status(500).json({ success: false, message: 'Internal Server Error' })
   }
 }
+
+
+exports.handlePostUserCommunicationDetails_Step3= async(req, res)=>{
+    let t
+    try{
+        const user= req.user
+        const { error, value } = fieldValidation_customerProfile.validate(req.body)
+        if (error) {
+          return res.status(400).json({ success: false, message: error.details[0].message })
+        }
+        
+        const { email, phone, name, lastName, pincode, city, role } = value
+        let profile
+        
+        t= await sequelize.transaction()
+        
+        const existingProfile= await handleCheckProfileExist(user, role, t)
+            if(!existingProfile){
+                  await t.rollback()
+                  return res.status(400).json({ success: false, message: 'No User Profile exist.' })
+            }
+
+            if (!existingProfile.isContactEmailVerified && !existingProfile.isContactNumberVerified) {
+              await t.rollback()
+              return res.status(400).json({ success: false, message: 'Cannot proceed. Profile is not verified (neither email nor phone).' })
+            }
+
+        if( role === 'customer'){
+             profile= await handleCustomerCommunicationProfile(user, t, email, phone, name, lastName, pincode, city, role)
+             await t.commit()
+             console.log('Customer profile created. No Email verification needed.')
+             return res.status(201).json({ success: true, message: 'Customer profile created.', profile: profile })
+              
+        }else if( role === 'owner'){
+             profile= await handleOwnerCommunicationProfile(user, t, email, phone, name, lastName, pincode, city, role)   
+             await t.commit()
+             console.log('Owner profile created. No Email verification needed.')
+             return res.status(201).json({ success: true, message: 'Owner profile created.', profile: profile })
+                
+        }
+
+    }catch(err){
+        if (t) await t.rollback()
+        console.error('Error creating  profile:', err)
+        return res.status(500).json({ success: false, message: 'Internal Server Error' })
+    }
+}
+
