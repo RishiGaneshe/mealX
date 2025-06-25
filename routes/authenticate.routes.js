@@ -7,7 +7,7 @@ router.post('/communication', AUTHENTICATE.handlePostSendIdentifier_Step1)
 
 router.post('/verify/otp', AUTHENTICATE.handlePostIdentifierVerify_Step2)
 
-router.post('/user-profile', AUTHENTICATE.handlePostUserCommunicationDetails_Step3 )
+router.post('/profile', AUTHENTICATE.handlePostUserCommunicationDetails_Step3 )
 
 
 

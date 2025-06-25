@@ -88,7 +88,7 @@ exports.handleSendEmailForSignUp = async (req, res) => {
         if( identifierType === 'email') {
              await sendSignUpOTP(identifier, otpRecord.otp) 
         } else if( identifierType === 'phone'){                                           
-             // function to send otp to phone number.
+             true;
         }
 
         await t.commit() 
