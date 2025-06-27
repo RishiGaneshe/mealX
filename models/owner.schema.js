@@ -70,7 +70,12 @@ const OwnerProfile = sequelize.define('MessOwnerProfile', {
     }
     }, {
       timestamps: true,
-      tableName: 'owner_profile'
+      tableName: 'owner_profile',
+      indexes: [
+        {
+          fields: ['identifier', 'identifierType']
+        }
+      ]
   })
 
 

@@ -56,10 +56,20 @@ const User = sequelize.define('User', {
   isActive: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
+  },
+  stage: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: '1'
   }
 }, {
   timestamps: true,
-  tableName: 'users'
+  tableName: 'users',
+  indexes: [
+    {
+      fields: ['identifier', 'identifierType']
+    }
+  ]
 })
 
 module.exports = User

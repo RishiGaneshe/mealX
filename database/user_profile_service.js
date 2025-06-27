@@ -25,7 +25,7 @@ exports.handleCustomerCommunicationProfile= async(user, t, email, phone, emailSt
       
 
         const [affectedRows, updatedUsers] = await User.update(
-            { isCustomer: true, isGuest: false },
+            { stage: '2', isCustomer: true, isGuest: false },
             { 
                 where: { username: user.username, identifier: user.identifier, id: user.id, isActive: true }, 
                 transaction: t,
@@ -65,7 +65,7 @@ exports.handleOwnerCommunicationProfile= async(user, t, email, phone, emailStatu
         )
 
         const [affectedRows, updatedUsers] = await User.update(
-            { isOwner: true, isGuest: false },
+            { stage: '2', isOwner: true, isGuest: false },
             { 
                 where: { username: user.username, identifier: user.identifier, id: user.id, isActive: true }, 
                 transaction: t,

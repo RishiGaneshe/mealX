@@ -43,7 +43,15 @@ const OTP= sequelize.define('OTP', {
   }
 }, {
     timestamps: true,
-    tableName: 'otps'
+    tableName: 'otps',
+    indexes: [
+      {
+        fields: ['reciever', 'context']
+      },
+      {
+        fields: ['expiresAt']
+      }
+    ]
 })
 
 

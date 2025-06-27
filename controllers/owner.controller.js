@@ -133,6 +133,7 @@ exports.handlePostVerifyMessEmail = async (req, res) => {
       }
   
       messProfile.isEmailVerified = true
+      messProfile.status= 'activated'
       await messProfile.save({ transaction: t })
   
       await otpRecord.destroy({ transaction: t })

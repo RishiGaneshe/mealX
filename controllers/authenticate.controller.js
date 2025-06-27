@@ -45,7 +45,8 @@ exports.handlePostSendIdentifier_Step1= async(req, res)=>{
             const payload={ 
               identifier: identifier,
               isVerified: true,
-              identifierType: receiverType
+              identifierType: receiverType,
+              userId: user.id
             }
             token= jwt.sign(payload, secret, { expiresIn: '30m'})
 
@@ -64,7 +65,7 @@ exports.handlePostSendIdentifier_Step1= async(req, res)=>{
 
       await t.commit()
 
-      return res.status(201).json({ success: true, message: `OTP sent to your ${receiverType}.`, identifier: identifier, requestId: otpRecord.requestId, context: context })
+      return res.status(201).json({ success: true, message: `OTP sent to your ${receiverType}.`, otp: otpRecord.otp, identifier: identifier, requestId: otpRecord.requestId, context: context })
 
   }catch(err){
       if (t) await t.rollback()
@@ -114,7 +115,8 @@ exports.handlePostIdentifierVerify_Step2= async(req, res)=>{
       const payload={ 
         identifier: identifier,
         isVerified: true,
-        identifierType: receiverType
+        identifierType: receiverType,
+        userId: user.id
       }
       const token= jwt.sign(payload, secret, { expiresIn: '30m'})
       await otpRecord.destroy({ transaction: t })
@@ -153,7 +155,7 @@ exports.handlePostUserCommunicationDetails_Step3= async(req, res)=>{
         let emailStatus
         if(emailToken){
           emailData= await handelVerifyEmailToken(emailToken)
-            if( email !== emailData.identifier || emailData.isVerified === false || emailData.identifierType !== 'email'){
+            if( emailData.userId !== user.id ||email !== emailData.identifier || emailData.isVerified === false || emailData.identifierType !== 'email'){
               return res.status(400).json({ success: false, message: 'Please provide the verified email.' })
             }
             emailStatus= emailData.isVerified
@@ -163,7 +165,7 @@ exports.handlePostUserCommunicationDetails_Step3= async(req, res)=>{
         let phoneStatus
         if(phoneToken){
             phoneData= await handelVerifyPhoneToken(phoneToken)
-              if( phone !== phoneData.identifier  || phoneData.isVerified === false || phoneData.identifierType !== 'phone'){
+              if( phoneData.userId !== user.id || phone !== phoneData.identifier  || phoneData.isVerified === false || phoneData.identifierType !== 'phone'){
                 return res.status(400).json({ success: false, message: 'Please provide the verified phone.' })
               }
             phoneStatus= phoneData.isVerified

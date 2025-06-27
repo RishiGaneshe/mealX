@@ -1,7 +1,6 @@
 const sgMail= require('@sendgrid/mail')
 
-sgMail.setApiKey(process.env.SendGrid)
-
+sgMail.setApiKey(process.env.SendGrid_For_MealX)
 
 
 exports.sendEmailPreRegisteredMessage= async (email, mess_id) =>{

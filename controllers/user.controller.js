@@ -94,7 +94,7 @@ exports.handleSendEmailForSignUp = async (req, res) => {
         await t.commit() 
         console.log(`OTP sent to ${identifierType}: ${identifier}`)
 
-        return res.status(200).json({ success: true,  message: `OTP sent successfully to: ${identifier}`, identifier: otpRecord.reciever, identifierType: otpRecord.receiverType, requestId: otpRecord.requestId, context: otpRecord.context})
+        return res.status(200).json({ success: true,  message: `OTP sent successfully to: ${identifier}`, otp: otpRecord.otp, identifier: otpRecord.reciever, identifierType: otpRecord.receiverType, requestId: otpRecord.requestId, context: otpRecord.context})
         
     }catch(err){
         if (t) await t.rollback()
@@ -146,7 +146,7 @@ exports.handlePostOTPVerification= async(req, res)=>{
         const token= await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.isOwner, user.isCustomer, user.isAdmin)
         
         console.log('OTP verified. Registration completed. Token sent.')
-        return res.status(201).json({ success: true, message: 'OTP verified successfully.Registration completed.', token: token, id: user.id, identifier: identifier, identifierType: identifierType, role: user.role })
+        return res.status(201).json({ success: true, message: 'OTP verified successfully.Registration completed.', token: token, id: user.id, identifier: user.identifier, username: user.username, isOwner: user.isOwner, isCustomer: user.isCustomer, isAdmin: user.isAdmin, stage: user.stage })
 
     }catch(err){
         if(t) await t.rollback()
@@ -184,7 +184,7 @@ exports.handlePostUserLogin= async(req, res)=>{
         const token= await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.isOwner, user.isCustomer, user.isAdmin)
 
         console.log('Login Successful.')
-        return res.status(200).json({ success: true, message: 'Login successful', token, user: { id: user.id, identifier: user.identifier, username: user.username, isOwner: user.isOwner, isCustomer: user.isCustomer, isAdmin: user.isAdmin } })
+        return res.status(200).json({ success: true, message: 'Login successful', token: token, id: user.id, identifier: user.identifier, username: user.username, isOwner: user.isOwner, isCustomer: user.isCustomer, isAdmin: user.isAdmin, stage: user.stage })
 
     }catch(err){
         console.error('Login error:', err)
@@ -335,7 +335,7 @@ exports.handlePostGoogleAuth = async (req, res) => {
             const token = await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.isOwner, user.isCustomer, user.isAdmin)
 
             console.log('Google signup successful')
-            return res.status(201).json({ success: true, message: 'Google signup successful', token: token, id: user.id, username: user.username, identifier: user.identifier, identifierType: user.identifierType, isOwner: user.isOwner, isCustomer: user.isCustomer, isAdmin: user.isAdmin })
+            return res.status(201).json({ success: true, message: 'Google signup successful', token: token, id: user.id, username: user.username, identifier: user.identifier, identifierType: user.identifierType, isOwner: user.isOwner, isCustomer: user.isCustomer, isAdmin: user.isAdmin, stage: user.stage })
 
       } else {
 
@@ -348,7 +348,7 @@ exports.handlePostGoogleAuth = async (req, res) => {
             const token = await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.isOwner, user.isCustomer, user.isAdmin)
 
             console.log('Google signup successful')
-            return res.status(200).json({ success: true, message: 'Google login successful', token: token, id: user.id, username: user.username, identifier: user.identifier, identifierType: user.identifierType, isOwner: user.isOwner, isCustomer: user.isCustomer, isAdmin: user.isAdmin })
+            return res.status(200).json({ success: true, message: 'Google login successful', token: token, id: user.id, username: user.username, identifier: user.identifier, identifierType: user.identifierType, isOwner: user.isOwner, isCustomer: user.isCustomer, isAdmin: user.isAdmin, stage: user.stage })
       }
 
     } catch (err) {
@@ -462,7 +462,7 @@ exports.handleFacebookAuth= async(req, res)=>{
             })
 
             const token = await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.isOwner, user.isCustomer, user.isAdmin)
-            return res.status(200).json({ success: true, message: 'Facebook sign-up successful', token: token, id: user.id, username: user.username, identifier: user.identifier, identifierType: user.identifierType, isOwner: user.isOwner, isCustomer: user.isCustomer, isAdmin: user.isAdmin })
+            return res.status(200).json({ success: true, message: 'Facebook sign-up successful', token: token, id: user.id, username: user.username, identifier: user.identifier, identifierType: user.identifierType, isOwner: user.isOwner, isCustomer: user.isCustomer, isAdmin: user.isAdmin, stage: user.stage })
         }
 
         if(user.authProvider !== 'facebook'){
@@ -470,7 +470,7 @@ exports.handleFacebookAuth= async(req, res)=>{
         }
 
         const token = await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.isOwner, user.isCustomer, user.isAdmin)
-        return res.status(200).json({ success: true, message: 'Facebook login successful', token: token, id: user.id, username: user.username, identifier: user.identifier, identifierType: user.identifierType, isOwner: user.isOwner, isCustomer: user.isCustomer, isAdmin: user.isAdmin })
+        return res.status(200).json({ success: true, message: 'Facebook login successful', token: token, id: user.id, username: user.username, identifier: user.identifier, identifierType: user.identifierType, isOwner: user.isOwner, isCustomer: user.isCustomer, isAdmin: user.isAdmin, stage: user.stage })
 
     }catch(err){
         console.error('[Facebook Login Error]', err.message)

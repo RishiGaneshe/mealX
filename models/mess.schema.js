@@ -41,6 +41,11 @@ const MessProfile = sequelize.define('MessProfile', {
       isEmailVerified: { type: DataTypes.BOOLEAN, defaultValue: false },
       isVerified: { type: DataTypes.BOOLEAN, defaultValue: false },
       isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
+      status: {
+        type: DataTypes.ENUM( 'inactive', 'pending', 'activated'),
+        defaultValue: 'inactive',
+        allowNull: false
+      },
 
       logoUrl: { type: DataTypes.STRING },
       openTime: { type: DataTypes.TIME },

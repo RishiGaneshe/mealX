@@ -65,7 +65,12 @@ const CustomerProfile= sequelize.define('CustomerProfile',{
     }
   }, {
     timestamps: true,
-    tableName: 'customer_profile'
+    tableName: 'customer_profile',
+    indexes: [
+        {
+          fields: ['identifier', 'identifierType']
+        }
+    ]
 })
 
 
