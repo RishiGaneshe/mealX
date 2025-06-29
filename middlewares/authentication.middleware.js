@@ -44,18 +44,6 @@ exports.tokenAuthentication = async (req, res, next) => {
         }
 
         req.user= user
-        let role
-        if (req.requiredRole) {
-            role= req.user.role
-            if( role === 'guest' ){
-                const user = await User.findOne({ where: { username: req.user.username, identifier: req.user.identifier, isActive: true } })
-                role= user.role
-            }
-
-            if (!req.requiredRole.includes(role)) {
-                return res.status(403).json({ success: false, message: 'Access denied' })
-            }
-        }
         next()
 
     } catch (err) {

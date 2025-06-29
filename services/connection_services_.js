@@ -2,7 +2,8 @@ const { redisClient }= require('./redis_services_')
 const { Sequelize }= require('sequelize')
 
 
-const DATABASE_URL= process.env.PostGre_DATABASE_URL
+// const DATABASE_URL= process.env.PostGre_DATABASE_URL
+const DATABASE_URL= process.env.PostGre_LOCAL_DATABASE_URL
 
 
 const sequelize= new Sequelize(DATABASE_URL, {

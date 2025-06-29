@@ -147,3 +147,28 @@ exports.handlePostVerifyMessEmail = async (req, res) => {
       return res.status(500).json({ success: false, message: 'Internal server error.' })
     }
 }
+
+
+exports.handleGetAllMess= async(req, res)=>{
+  try{
+      const ownerId = req.user?.id
+      if (!ownerId) {
+        return res.status(401).json({ success: false, message: 'Unauthorized. Owner ID missing.' })
+      }
+
+      const messes = await MessProfile.findAll({
+        where: { messOwnerId: ownerId },
+        order: [['createdAt', 'DESC']]
+      })
+
+      if(!messes){
+        return res.status(404).json({ success: false, message: 'No mess found for this owner' })
+      }
+
+      return res.status(200).json({ success: true, totalMess: messes.length, data: messes })
+
+  }catch(err){
+      console.error('Error fetching mess profiles:', error);
+      return res.status(500).json({ success: false, message: 'Internal server error.'})
+  }
+}
