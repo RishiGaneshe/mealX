@@ -54,4 +54,4 @@ app.use('/owner', setRoleOwner, tokenAuthentication, authorizationRoleMiddleware
 app.use('/customer', setRoleCustomer,tokenAuthentication, authorizationRoleMiddleware, CUSTOMER)
 
 
-app.listen(port, ()=>{ console.log(`Server Started on Port ${port}.`)})
+app.listen(port, '0.0.0.0', ()=>{ console.log(`Server Started on Port ${port}.`)})
