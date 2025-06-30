@@ -34,7 +34,7 @@ exports.createMessProfile = async (req, res) => {
       const activationDocFile = req.files['activationDoc']?.[0]
       const logoFile = req.files['logoFile']?.[0]
   
-      if (!fssaiDocFile || !activationDocFile || !logoFile) {
+      if ( !activationDocFile || !logoFile) {
             await t.rollback()
             return res.status(400).json({ success: false, message: 'Required documents are missing.' })
       }
@@ -45,9 +45,12 @@ exports.createMessProfile = async (req, res) => {
       let messLogoUrl
 
       try {
-          fssaiDocUrl = await uploadFileToS3(fssaiDocFile, aws_folder)
+          if(fssaiDocFile){
+            fssaiDocUrl = await uploadFileToS3(fssaiDocFile, aws_folder)
+          }
           activationDocUrl = await uploadFileToS3(activationDocFile, aws_folder)
           messLogoUrl = await uploadFileToS3(logoFile, aws_folder)
+          
       } catch (err) {
           await t.rollback()
           console.error('mess verification file failed', err)

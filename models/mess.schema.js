@@ -13,7 +13,7 @@ const MessProfile = sequelize.define('MessProfile', {
       },
       messName: { type: DataTypes.STRING, allowNull: false },   // messName and messAddress should not be same
       ownerName: { type: DataTypes.STRING, allowNull: false },
-      email: { type: DataTypes.STRING, allowNull: false, unique: true, validate: { isEmail: true } },
+      email: { type: DataTypes.STRING, allowNull: false, validate: { isEmail: true } },
       contactNumber: { type: DataTypes.STRING, allowNull: false },
       alternateContact: { type: DataTypes.STRING },
 
