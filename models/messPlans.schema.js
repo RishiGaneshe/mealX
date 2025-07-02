@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const { sequelize } = require('../services/connection_services_');
+const { sequelize } = require('../services/connection_services_')
 
 const MessPlan = sequelize.define('MessPlan', {
   planId: {
@@ -15,15 +15,15 @@ const MessPlan = sequelize.define('MessPlan', {
     onDelete: 'CASCADE'
   },
 
-  name: { type: DataTypes.STRING, allowNull: false },                        // Plan name
-  description: { type: DataTypes.TEXT, allowNull: false },                   // Description of plan
-  menu: { type: DataTypes.JSONB, allowNull: false },                         // Store structured menu
-  durationDays: { type: DataTypes.INTEGER, allowNull: false },              // Number of days (e.g., 15)
-  expiryDate: { type: DataTypes.DATE, allowNull: false },                   // Plan expiry
-  imageUrl: { type: DataTypes.STRING },                                      // Optional image for plan
-  price: { type: DataTypes.FLOAT, allowNull: false },                        // Plan price
+  name: { type: DataTypes.STRING, allowNull: false },                        
+  description: { type: DataTypes.TEXT, allowNull: false },                   
+  menu: { type: DataTypes.ARRAY(DataTypes.STRING), allowNull: false },
+  durationDays: { type: DataTypes.INTEGER, allowNull: false },              
+  expiryDate: { type: DataTypes.DATE, allowNull: false },                   
+  imageUrl: { type: DataTypes.STRING },                                      
+  price: { type: DataTypes.FLOAT, allowNull: false },                        
 
-  usageCount: { type: DataTypes.INTEGER, defaultValue: 0 },                 // For popularity filter
+  usageCount: { type: DataTypes.INTEGER, defaultValue: 0 },                 
 
   status: {
     type: DataTypes.ENUM('active', 'deactive', 'deleted'),

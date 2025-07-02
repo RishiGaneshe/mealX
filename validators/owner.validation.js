@@ -81,3 +81,34 @@ exports.fieldValidation_emailVerification = Joi.object({
 })
 
 
+exports.validateMessPlan = Joi.object({
+  messId: Joi.string()
+    .guid({ version: ['uuidv4', 'uuidv5'] })
+    .required()
+    .messages({
+      'string.guid': 'messId must be a valid UUID.',
+      'any.required': 'messId is required.'
+    }),
+
+  name: Joi.string().min(2).max(100).required(),
+  description: Joi.string().min(10).max(1000).required(),
+
+  menu: Joi.array()
+    .items(
+      Joi.alternatives().try(
+        Joi.string().min(1), // Accepts "Dal Rice"
+        Joi.object().pattern( // Accepts structured menu like { lunch: "Dal", dinner: "Paneer" }
+          Joi.string(), // keys like "lunch", "dinner"
+          Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string()))
+        )
+      )
+    )
+    .min(1)
+    .required(),
+
+  durationDays: Joi.number().integer().min(1).max(365).required(),
+  price: Joi.number().min(1).required()
+})
+
+
+
