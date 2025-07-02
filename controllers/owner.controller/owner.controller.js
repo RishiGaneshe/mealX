@@ -1,12 +1,15 @@
-const { validateMessProfile, fieldValidation_emailVerification, validateMessPlan }= require('../validators/owner.validation')
-const MessProfile= require('../models/mess.schema')
-const { sequelize } = require('../services/connection_services_')
-const { uploadFileToS3 }= require('../services/s3FileUpload_services')
-const OwnerProfile= require('../models/owner.schema')
-const { saveOtpInDatabase,  } = require('../database/otp_services_')
-const { sendSignUpOTP }= require('../services/email_services_')
-const OTP= require('../models/otp.schema')
 const { Op } = require('sequelize')
+const OTP= require('../../models/otp.schema')
+const MessProfile= require('../../models/mess.schema')
+const OwnerProfile= require('../../models/owner.schema')
+const MessPlan= require('../../models/messPlans.schema')
+const { sendSignUpOTP }= require('../../services/email_services_')
+const { sequelize } = require('../../services/connection_services_')
+const { saveOtpInDatabase,  } = require('../../database/otp_services_')
+const { uploadFileToS3 }= require('../../services/s3FileUpload_services')
+const { validateMessProfile, fieldValidation_emailVerification, validateMessPlan }= require('../../validators/owner.validation')
+
+
 
 
 exports.createMessProfile = async (req, res) => {
@@ -156,6 +159,7 @@ exports.handlePostVerifyMessEmail = async (req, res) => {
           messCount: ownerProfile.messCount + 1
         })
         await ownerProfile.save({ transaction: t })
+        console.log('Mess Ids saved')
       }
   
       await otpRecord.destroy({ transaction: t })
@@ -278,68 +282,3 @@ exports.updateMessProfile = async (req, res) => {
 }
 
 
-exports.createMessPlan = async (req, res) => {
-  try {
-      if (!req.file) {
-        return res.status(400).json({ success: false, message: 'Image file is required.' })
-      }
-
-      let parsedMenu
-      try {
-        parsedMenu = JSON.parse(req.body.menu)
-      } catch (err) {
-        console.error('error in create plan', err.message)
-        return res.status(400).json({ success: false, message: 'Invalid JSON format for menu.' })
-      }
-
-      const { error, value } = validateMessPlan.validate({
-            messId: req.body.messId,
-            name: req.body.name,
-            description: req.body.description,
-            menu: parsedMenu,
-            durationDays: req.body.expiryDays,
-            price: req.body.price,
-      })
-
-      if (error) {
-        return res.status(400).json({ success: false, message: error.details[0].message })
-      }
-      
-      const userId = req.user?.id
-      const mess = await MessProfile.findOne({
-        where: {
-          messId: req.body.messId,
-          messOwnerId: userId
-        }
-      })
-  
-      if (!mess) {
-        return res.status(403).json({ success: false, message: 'You are not authorized to create plans for this mess.' })
-      }
-
-      const file = req.file
-      const aws_folder= `test`
-      const s3Url = await uploadFileToS3(file, aws_folder)
-
-      const currentDate = new Date()
-      const expiryDate = new Date(currentDate)
-      expiryDate.setDate(expiryDate.getDate() + parseInt(req.body.expiryDays))
-
-      const newPlan = await MessPlan.create({
-        messId: req.body.messId,
-        name: req.body.name,
-        description: req.body.description,
-        menu: parsedMenu,
-        durationDays: req.body.expiryDays,
-        expiryDate,
-        imageUrl: s3Url,
-        price: req.body.price
-      })
-
-      return res.status(201).json({ success: true, message: 'Mess plan created successfully', data: newPlan })
-
-  } catch (err) {
-      console.error('MessPlan Creation Error:', err)
-      return res.status(500).json({ success: false, message: 'Internal Server Error' })
-  }
-}

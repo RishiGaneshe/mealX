@@ -1,7 +1,6 @@
 const express= require('express')
 const router= express.Router()
-const USER= require('../controllers/user.controller')
-const CUSTOMER= require('../controllers/customer.controller')
+const USER= require('../controllers/user.controller/user.controller')
 
 
 

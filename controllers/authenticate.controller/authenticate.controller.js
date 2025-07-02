@@ -1,17 +1,17 @@
 const { Op } = require('sequelize')
-const OTP= require('../models/otp.schema')
-const User= require('../models/user.schema')
-const { sendSignUpOTP }= require('../services/email_services_')
-const { sequelize } = require('../services/connection_services_')
-const { fieldValidation_customerProfile, fieldValidation_emailVerification }= require('../validators/userField.validator')
-const { handleCustomerCommunicationProfile, handleOwnerCommunicationProfile, handleCheckProfileExist, handleCheckIfProfileExist, handleCheckIfIdentifierExist, existingEmailOrPhone }= require('../database/user_profile_service')
-const { saveOtpInDatabase, readOtpFromDatabase }= require('../database/otp_services_')
-const { fieldValidation_identifierVerification, fieldValidation_userProfile }= require('../validators/authenticate.validation')
+const OTP= require('../../models/otp.schema')
+const User= require('../../models/user.schema')
+const { sendSignUpOTP }= require('../../services/email_services_')
+const { sequelize } = require('../../services/connection_services_')
+const { fieldValidation_customerProfile, fieldValidation_emailVerification }= require('../../validators/userField.validator')
+const { handleCustomerCommunicationProfile, handleOwnerCommunicationProfile, handleCheckProfileExist, handleCheckIfProfileExist, handleCheckIfIdentifierExist, existingEmailOrPhone }= require('../../database/user_profile_service')
+const { saveOtpInDatabase, readOtpFromDatabase }= require('../../database/otp_services_')
+const { fieldValidation_identifierVerification, fieldValidation_userProfile }= require('../../validators/authenticate.validation')
 const jwt= require('jsonwebtoken')
-const OwnerProfile = require('../models/owner.schema')
-const CustomerProfile= require('../models/customers.schema')
+const OwnerProfile = require('../../models/owner.schema')
+const CustomerProfile= require('../../models/customers.schema')
 const secret= process.env.Secret
-const { handelVerifyEmailToken, handelVerifyPhoneToken }= require('../services/emailandphoneToken_verify_services_')
+const { handelVerifyEmailToken, handelVerifyPhoneToken }= require('../../services/emailandphoneToken_verify_services_')
 
 
 exports.handlePostSendIdentifier_Step1= async(req, res)=>{

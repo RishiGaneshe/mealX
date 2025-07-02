@@ -1,6 +1,6 @@
 const express= require('express')
 const router= express.Router()
-const AUTHENTICATE= require('../controllers/authenticate.controller')
+const AUTHENTICATE= require('../controllers/authenticate.controller/authenticate.controller')
 
 
 router.post('/communication', AUTHENTICATE.handlePostSendIdentifier_Step1)

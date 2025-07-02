@@ -11,3 +11,4 @@ docker-compose.yml
 configs/dfic-notification-firebase-adminsdk-fbsvc-1be811060a.json
 Nt.notifications.txt
 test/
+.gitignore

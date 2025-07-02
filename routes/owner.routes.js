@@ -1,12 +1,14 @@
 const express= require('express')
 const router= express.Router()
-const USER= require('../controllers/user.controller')
-const OWNER= require('../controllers/owner.controller')
 const { upload }= require('../services/multer_services_')
+const OWNER= require('../controllers/owner.controller/owner.controller')
+const PLAN= require('../controllers/owner.controller/messPlan.controller')
 
 
 
-router.get('/all-mess', OWNER.handleGetAllMess)
+router.get('/mess/all', OWNER.handleGetAllMess)
+
+router.get('/mess/plan/:messId', PLAN.getMessPlans)
 
 
 
@@ -15,7 +17,13 @@ router.post('/mess',upload.fields([ { name: 'logoFile', maxCount: 1 }, { name: '
 
 router.post('/mess/otp', OWNER.handlePostVerifyMessEmail)
 
-router.post('/create-plan', upload.single('image'), OWNER.createMessPlan)
+router.post('/mess/plan/create', upload.single('image'), PLAN.createMessPlan)
+
+router.post('/mess/plan/activate/:planId', PLAN.activateMessPlan)
+
+router.post('/mess/plan/deactivate/:planId', PLAN.deactivateMessPlan)
+
+router.post('/mess/plan/delete/:planId', PLAN.deleteMessPlan)
 
 
 
