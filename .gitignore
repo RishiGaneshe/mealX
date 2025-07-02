@@ -5,8 +5,6 @@ logs/
 configs/**
 !configs/
 !.gitkeep
-Dockerfile
-docker-compose.yml
 .dockerignore
 configs/dfic-notification-firebase-adminsdk-fbsvc-1be811060a.json
 Nt.notifications.txt
