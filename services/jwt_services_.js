@@ -1,9 +1,9 @@
 const jwt= require('jsonwebtoken')
 const secret= process.env.Secret
 
-exports.createJwtToken= async (id, username, identifier, identifierType, authProvider, isOwner, isCustomer, isAdmin )=>{
+exports.createJwtToken= async (id, username, identifier, identifierType, authProvider, isOwner, isCustomer, isAdmin, isGuest )=>{
   try{
-      return jwt.sign( { id, username, identifier, identifierType, authProvider, isOwner, isCustomer, isAdmin}, secret, {expiresIn: '3h'})
+      return jwt.sign( { id, username, identifier, identifierType, authProvider, isOwner, isCustomer, isAdmin, isGuest}, secret, {expiresIn: '3h'})
   }catch(err){
     console.error(`Error In creating Token.`,err.message)
     throw err

@@ -1,3 +1,5 @@
+const USER= require('../models/user.schema')
+
 exports.authorizationRoleMiddleware= async(req, res, next)=>{
     try{
         const user= req.user
@@ -12,7 +14,14 @@ exports.authorizationRoleMiddleware= async(req, res, next)=>{
         if (user.isAdmin) effectiveRoles.push('admin')
         if (user.isOwner) effectiveRoles.push('owner')
         if (user.isCustomer) effectiveRoles.push('customer')
-
+            
+        if (user.isGuest) {
+            const userData= await USER.findOne({ where: { identifier: user.identifier, identifierType: user.identifierType }})
+            if (userData.isAdmin) effectiveRoles.push('admin')
+            if (userData.isOwner) effectiveRoles.push('owner')
+            if (userData.isCustomer) effectiveRoles.push('customer')
+        }
+  
         if (effectiveRoles.length === 0) effectiveRoles.push('guest')
 
         const isAuthorized= effectiveRoles.some(role => req.requiredRole.includes(role))

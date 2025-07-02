@@ -175,3 +175,83 @@ exports.handleGetAllMess= async(req, res)=>{
       return res.status(500).json({ success: false, message: 'Internal server error.'})
   }
 }
+
+
+exports.updateMessProfile = async (req, res) => {
+  let t
+  try {
+        const { messId } = req.params
+        if (!messId) {
+          return res.status(400).json({ success: false, message: 'Mess ID is required' })
+        }
+
+        const { error, value } = validateMessProfile.validate(req.body)
+        if (error) {
+          return res.status(400).json({ success: false, message: error.details[0].message })
+        }
+
+        const BLOCKED_FIELDS_IF_ACTIVATED = [
+          'messType', 'messName', 'ownerName', 'email',
+          'contactNumber', 'address', 'city', 'state',
+          'pincode', 'activationDocType'
+        ]
+
+        t = await sequelize.transaction()
+
+        const mess = await MessProfile.findOne({ where: { messId }, transaction: t })
+        if (!mess) {
+          await t.rollback()
+          return res.status(404).json({ success: false, message: 'Mess profile not found' })
+        }
+
+        if (mess.status === 'activated') {
+          const blockedFields = Object.keys(value).filter(field => BLOCKED_FIELDS_IF_ACTIVATED.includes(field))
+          if (blockedFields.length > 0) {
+            await t.rollback()
+            return res.status(403).json({success: false, message: 'Cannot update certain fields after mess is activated', restrictedFields: blockedFields })
+          }
+        }
+
+        const fssaiDocFile = req.files?.['fssaiDoc']?.[0]
+        const activationDocFile = req.files?.['activationDoc']?.[0]
+        const logoFile = req.files?.['logoFile']?.[0]
+
+        const aws_folder = 'test'
+        let fileUpdates = {}
+
+        try {
+            if (fssaiDocFile) {
+              const fssaiDocUrl = await uploadFileToS3(fssaiDocFile, aws_folder);
+              fileUpdates.fssaiDocUrl = fssaiDocUrl
+            }
+            if (activationDocFile) {
+              const activationDocUrl = await uploadFileToS3(activationDocFile, aws_folder);
+              fileUpdates.activationDocUrl = activationDocUrl
+            }
+            if (logoFile) {
+              const logoUrl = await uploadFileToS3(logoFile, aws_folder);
+              fileUpdates.logoUrl = logoUrl
+            }
+
+        } catch (uploadErr) {
+            await t.rollback()
+            console.error('S3 Upload Error:', uploadErr)
+            return res.status(500).json({ success: false, message: 'Failed to upload documents' })
+        }
+
+        const updatedData = {
+          ...value,
+          ...fileUpdates
+        };
+
+        await mess.update(updatedData, { transaction: t })
+
+        await t.commit()
+        return res.status(200).json({ success: true, message: 'Mess profile updated successfully', data: mess })
+
+  } catch (err) {
+        if (t) await t.rollback();
+        console.error('Update Mess Error:', err)
+        return res.status(500).json({ success: false, message: 'Internal server error' })
+  }
+}

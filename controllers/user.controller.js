@@ -143,7 +143,7 @@ exports.handlePostOTPVerification= async(req, res)=>{
         
         const user= updatedUsers[0]
     
-        const token= await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.isOwner, user.isCustomer, user.isAdmin)
+        const token= await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.isOwner, user.isCustomer, user.isAdmin, user.isGuest)
         
         console.log('OTP verified. Registration completed. Token sent.')
         return res.status(201).json({ success: true, message: 'OTP verified successfully.Registration completed.', token: token, id: user.id, identifier: user.identifier, username: user.username, isOwner: user.isOwner, isCustomer: user.isCustomer, isAdmin: user.isAdmin, stage: user.stage })
@@ -181,7 +181,7 @@ exports.handlePostUserLogin= async(req, res)=>{
                 return res.status(401).json({ success: false, message: 'Invalid Credentials' })
             }
 
-        const token= await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.isOwner, user.isCustomer, user.isAdmin)
+        const token= await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.isOwner, user.isCustomer, user.isAdmin, user.isGuest)
 
         console.log('Login Successful.')
         return res.status(200).json({ success: true, message: 'Login successful', token: token, id: user.id, identifier: user.identifier, username: user.username, isOwner: user.isOwner, isCustomer: user.isCustomer, isAdmin: user.isAdmin, stage: user.stage })
@@ -332,7 +332,7 @@ exports.handlePostGoogleAuth = async (req, res) => {
             }, { transaction: t })
     
             await t.commit()
-            const token = await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.isOwner, user.isCustomer, user.isAdmin)
+            const token = await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.isOwner, user.isCustomer, user.isAdmin, user.isGuest)
 
             console.log('Google signup successful')
             return res.status(201).json({ success: true, message: 'Google signup successful', token: token, id: user.id, username: user.username, identifier: user.identifier, identifierType: user.identifierType, isOwner: user.isOwner, isCustomer: user.isCustomer, isAdmin: user.isAdmin, stage: user.stage })
@@ -345,7 +345,7 @@ exports.handlePostGoogleAuth = async (req, res) => {
             }
 
             await t.commit()
-            const token = await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.isOwner, user.isCustomer, user.isAdmin)
+            const token = await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.isOwner, user.isCustomer, user.isAdmin, user.isGuest)
 
             console.log('Google signup successful')
             return res.status(200).json({ success: true, message: 'Google login successful', token: token, id: user.id, username: user.username, identifier: user.identifier, identifierType: user.identifierType, isOwner: user.isOwner, isCustomer: user.isCustomer, isAdmin: user.isAdmin, stage: user.stage })
@@ -461,7 +461,7 @@ exports.handleFacebookAuth= async(req, res)=>{
               isGuest: true
             })
 
-            const token = await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.isOwner, user.isCustomer, user.isAdmin)
+            const token = await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.isOwner, user.isCustomer, user.isAdmin, user.isGuest)
             return res.status(200).json({ success: true, message: 'Facebook sign-up successful', token: token, id: user.id, username: user.username, identifier: user.identifier, identifierType: user.identifierType, isOwner: user.isOwner, isCustomer: user.isCustomer, isAdmin: user.isAdmin, stage: user.stage })
         }
 
@@ -469,7 +469,7 @@ exports.handleFacebookAuth= async(req, res)=>{
             return res.status(403).json({ success: false, message: `Email already exist. Cannot proceed.` })
         }
 
-        const token = await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.isOwner, user.isCustomer, user.isAdmin)
+        const token = await createJwtToken(user.id, user.username, user.identifier, user.identifierType, user.authProvider, user.isOwner, user.isCustomer, user.isAdmin, user.isGuest)
         return res.status(200).json({ success: true, message: 'Facebook login successful', token: token, id: user.id, username: user.username, identifier: user.identifier, identifierType: user.identifierType, isOwner: user.isOwner, isCustomer: user.isCustomer, isAdmin: user.isAdmin, stage: user.stage })
 
     }catch(err){
