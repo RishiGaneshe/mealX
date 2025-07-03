@@ -111,4 +111,28 @@ exports.validateMessPlan = Joi.object({
 })
 
 
+exports.updateMessPlanSchema = Joi.object({
+  name: Joi.string().min(3).max(100),
+  description: Joi.string().max(1000),
+
+  menu: Joi.array()
+        .items(
+          Joi.alternatives().try(
+            Joi.string().min(1), // Accepts "Dal Rice"
+            Joi.object().pattern( // Accepts structured menu like { lunch: "Dal", dinner: "Paneer" }
+              Joi.string(), // keys like "lunch", "dinner"
+              Joi.alternatives().try(Joi.string(), Joi.array().items(Joi.string()))
+            )
+          )
+        )
+        .min(1),
+
+  durationDays: Joi.number().integer().min(1).max(365).required(),
+  expiryDate: Joi.date().greater('now'),
+  imageUrl: Joi.string().uri(),
+  price: Joi.number().positive(),
+})
+
+
+
 

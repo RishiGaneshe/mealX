@@ -25,6 +25,8 @@ router.post('/mess/plan/deactivate/:planId', PLAN.deactivateMessPlan)
 
 router.post('/mess/plan/delete/:planId', PLAN.deleteMessPlan)
 
+router.post('/mess/plan/update/:planId', PLAN.updateMessPlan)
+
 
 
 

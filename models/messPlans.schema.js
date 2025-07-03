@@ -26,8 +26,8 @@ const MessPlan = sequelize.define('MessPlan', {
   usageCount: { type: DataTypes.INTEGER, defaultValue: 0 },                 
 
   status: {
-    type: DataTypes.ENUM('active', 'deactive', 'deleted'),
-    defaultValue: 'active',
+    type: DataTypes.ENUM('pending', 'active', 'deactive', 'deleted'),
+    defaultValue: 'pending',
     allowNull: false
   },
 
