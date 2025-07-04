@@ -44,7 +44,9 @@ jobs:
 
           ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
           cd /home/${USER}/app
-
+          
+          sudo fuser -k 7000/tcp || true
+          
           sudo docker pull ${{ secrets.DOCKER_IMAGE }}:latest
           sudo docker stop my-app || true
           sudo docker rm my-app || true
