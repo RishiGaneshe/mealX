@@ -42,8 +42,8 @@ const MessProfile = sequelize.define('MessProfile', {
       isVerified: { type: DataTypes.BOOLEAN, defaultValue: false },
       isActive: { type: DataTypes.BOOLEAN, defaultValue: true },
       status: {
-        type: DataTypes.ENUM( 'inactive', 'pending', 'activated'),
-        defaultValue: 'inactive',
+        type: DataTypes.ENUM( 'inactive', 'pending', 'active'),
+        defaultValue: 'active',
         allowNull: false
       },
 

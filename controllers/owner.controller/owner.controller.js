@@ -185,19 +185,56 @@ exports.handleGetAllMess= async(req, res)=>{
       }
 
       const messes = await MessProfile.findAll({
-        where: { messOwnerId: ownerId },
-        order: [['createdAt', 'DESC']]
+          where: { messOwnerId: ownerId },
+          order: [['createdAt', 'DESC']],
+          attributes: ['messId', 'messName', 'ownerName', 'status', 'messType', 'address', 'city', 'logoUrl']
       })
 
-      if(!messes){
-        return res.status(404).json({ success: false, message: 'No mess found for this owner' })
+      let ownerName = null
+      if (messes.length > 0) {
+        ownerName = messes[0].ownerName
+      } else {
+        const ownerProfile = await OwnerProfile.findOne({
+            where: { userId: ownerId },
+            attributes: ['ownerName']
+        })
+        ownerName = ownerProfile?.ownerName || null
       }
 
-      return res.status(200).json({ success: true, totalMess: messes.length, data: messes })
+      if (!messes || messes.length === 0) {
+        return res.status(200).json({ success: false, message: 'No mess found for this owner', ownerName: ownerName, totalMess: messes.length, data: messes })
+      }
+
+      console.log('Total mess data sent successfully')
+      return res.status(200).json({ success: true, message: 'Total mess data sent successfully', ownerName: ownerName, totalMess: messes.length, data: messes })
 
   }catch(err){
-      console.error('Error fetching mess profiles:', error);
+      console.error('Error fetching mess profiles:', err);
       return res.status(500).json({ success: false, message: 'Internal server error.'})
+  }
+}
+
+
+exports.handleGetMessById = async (req, res) => {
+  try {
+      const { messId } = req.params
+
+      if (!messId) {
+        return res.status(400).json({ success: false, message: 'Mess ID is required.' })
+      }
+
+      const mess = await MessProfile.findOne({ where: { messId } })
+
+      if (!mess) {
+        return res.status(404).json({ success: false, message: 'Mess not found with the provided ID.'})
+      }
+
+      console.log(`Mess fetched successfully for id: ${messId}`)
+      return res.status(200).json({ success: true, message: 'Mess fetched successfully.', data: mess })
+
+  } catch (err) {
+      console.error('Error in handleGetMessById:', err)
+      return res.status(500).json({ success: false, message: 'Internal server error.' })
   }
 }
 
