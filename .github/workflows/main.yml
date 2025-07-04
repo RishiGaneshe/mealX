@@ -48,8 +48,8 @@ jobs:
           sudo fuser -k 7000/tcp || true
           
           sudo docker pull ${{ secrets.DOCKER_IMAGE }}:latest
-          sudo docker stop my-app || true
-          sudo docker rm my-app || true
+          sudo docker stop my-mealx || true
+          sudo docker rm my-mealx || true
           sudo docker run -d --name my-mealx --env-file .env -p 7000:4000 ${{ secrets.DOCKER_IMAGE }}:latest
           EOF
     - name: Notify (Email)
