@@ -36,9 +36,17 @@ jobs:
 
     - name: Deploy on remote server
       run: |
-        ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          mkdir -p /home/${USER}/app
+          EOF
+
+          echo "${{ secrets.ENV_FILE }}" | ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "cat > /home/${{ secrets.SERVER_USER }}/app/.env"
+
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          cd /home/${USER}/app
+
           sudo docker pull ${{ secrets.DOCKER_IMAGE }}:latest
           sudo docker stop my-app || true
           sudo docker rm my-app || true
-          sudo docker run -d --name my-app -p 7000:4000 ${{ secrets.DOCKER_IMAGE }}:latest
-        EOF
+          sudo docker run -d --name my-app --env-file .env -p 7000:4000 ${{ secrets.DOCKER_IMAGE }}:latest
+          EOF
