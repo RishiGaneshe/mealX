@@ -2,7 +2,7 @@ const MessProfile= require('../../models/mess.schema')
 const MessPlan= require('../../models/messPlans.schema')
 const { uploadFileToS3 }= require('../../services/s3FileUpload_services')
 const { validateMessPlan, updateMessPlanSchema }= require('../../validators/owner.validation')
-
+const { isUUID } = require('validator')
 
 
 
@@ -81,8 +81,8 @@ exports.createMessPlan = async (req, res) => {
 exports.getMessPlans = async (req, res) => {
     try {
       const { messId } = req.params
-      if (!messId) {
-        return res.status(400).json({ success: false, message: 'messId is required in params.' })
+      if (!messId || !isUUID(messId, 4)) {
+        return res.status(400).json({ success: false, message: 'messId is required and should be valid.' })
       }
   
       const plans = await MessPlan.findAll({
@@ -109,8 +109,8 @@ exports.activateMessPlan = async (req, res) => {
         const { planId } = req.params
         const userId = req.user?.id
   
-        if (!planId) {
-          return res.status(400).json({ success: false, message: 'Plan ID is required.' })
+        if (!planId || !isUUID(planId, 4)) {
+          return res.status(400).json({ success: false, message: 'planId is required and should be valid.' })
         }
   
         if (!userId) {
@@ -153,8 +153,8 @@ exports.deactivateMessPlan = async (req, res) => {
       const { planId } = req.params
       const userId = req.user?.id
   
-      if (!planId ) {
-        return res.status(400).json({ success: false, message: 'Missing plan ID or user ID.' })
+      if (!planId || !isUUID(planId, 4)) {
+        return res.status(400).json({ success: false, message: 'planId is required and should be valid.' })
       }
 
       if (!userId) {
@@ -197,8 +197,8 @@ exports.deleteMessPlan = async (req, res) => {
     const { planId } = req.params
     const userId = req.user?.id
 
-    if (!planId) {
-      return res.status(400).json({ success: false, message: 'Missing plan ID.' })
+    if (!planId || !isUUID(planId, 4)) {
+      return res.status(400).json({ success: false, message: 'planId is required and should be valid.' })
     }
 
     if (!userId) {
@@ -238,8 +238,8 @@ exports.updateMessPlan = async (req, res) => {
       const updateData = req.body
       const userId= req.user?.id
 
-      if (!planId) {
-        return res.status(400).json({ success: false, message: 'Missing plan ID.' })
+      if (!planId || !isUUID(planId, 4)) {
+        return res.status(400).json({ success: false, message: 'planId is required and should be valid.' })
       }
 
       if (!userId) {

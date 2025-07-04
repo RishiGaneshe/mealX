@@ -8,7 +8,7 @@ const { sequelize } = require('../../services/connection_services_')
 const { saveOtpInDatabase,  } = require('../../database/otp_services_')
 const { uploadFileToS3 }= require('../../services/s3FileUpload_services')
 const { validateMessProfile, fieldValidation_emailVerification, validateMessPlan }= require('../../validators/owner.validation')
-
+const { isUUID } = require('validator')
 
 
 
@@ -218,9 +218,8 @@ exports.handleGetAllMess= async(req, res)=>{
 exports.handleGetMessById = async (req, res) => {
   try {
       const { messId } = req.params
-
-      if (!messId) {
-        return res.status(400).json({ success: false, message: 'Mess ID is required.' })
+      if (!messId || !isUUID(messId, 4)) {
+        return res.status(400).json({ success: false, message: 'messId is required and should be valid.' })
       }
 
       const mess = await MessProfile.findOne({ where: { messId } })
@@ -243,8 +242,8 @@ exports.updateMessProfile = async (req, res) => {
   let t
   try {
         const { messId } = req.params
-        if (!messId) {
-          return res.status(400).json({ success: false, message: 'Mess ID is required' })
+        if (!messId || !isUUID(messId, 4)) {
+          return res.status(400).json({ success: false, message: 'messId is required and should be valid.' })
         }
 
         const { error, value } = validateMessProfile.validate(req.body)
