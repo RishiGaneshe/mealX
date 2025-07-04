@@ -52,3 +52,30 @@ jobs:
           sudo docker rm my-app || true
           sudo docker run -d --name my-mealx --env-file .env -p 7000:4000 ${{ secrets.DOCKER_IMAGE }}:latest
           EOF
+    - name: Notify (Email)
+      if: always()
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.sendgrid.net
+        server_port: 587
+        username: apikey
+        password: ${{ secrets.SENDGRID_API_KEY }}
+        subject: "🚀 Deployment ${{ job.status }} — mealX"
+        to: abhishekganeshe33@gmail.com
+        from: aws.dakshifoundation@gmail.com
+        content_type: text/plain
+        body: |
+          📢 *Deployment Notification*
+    
+          🔧 Repository:   ${{ github.repository }}
+          🌿 Branch:       ${{ github.ref_name }}
+          👤 Triggered by: ${{ github.actor }}
+          📦 Status:       ${{ job.status }}
+    
+          📅 Time:         ${{ github.event.head_commit.timestamp }}
+          📝 Commit:       ${{ github.event.head_commit.message }}
+    
+          🔗 View Run:     https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    
+          -----------------------------------------------------
+          🤖 This is an automated message from your CI pipeline.
