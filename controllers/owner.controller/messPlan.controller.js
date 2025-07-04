@@ -55,14 +55,14 @@ exports.createMessPlan = async (req, res) => {
   
         const currentDate = new Date()
         const expiryDate = new Date(currentDate)
-        expiryDate.setDate(expiryDate.getDate() + parseInt(req.body.expiryDays))
+        expiryDate.setDate(expiryDate.getDate() + parseInt(req.body.durationDays))
   
         const newPlan = await MessPlan.create({
           messId: req.body.messId,
           name: req.body.name,
           description: req.body.description,
           menu: parsedMenu,
-          durationDays: req.body.expiryDays,
+          durationDays: req.body.durationDays,
           expiryDate,
           imageUrl: s3Url,
           price: req.body.price
@@ -91,7 +91,7 @@ exports.getMessPlans = async (req, res) => {
       })
   
       if (!plans.length) {
-        return res.status(404).json({ success: false, message: 'No plans found for this mess.' })
+        return res.status(200).json({ success: true, message: 'No plans found for this mess.', data: plans })
       }
       
       console.log('Mess plans sent successfully.')
@@ -120,7 +120,7 @@ exports.activateMessPlan = async (req, res) => {
         const plan = await MessPlan.findOne({ where: { planId } })
   
         if (!plan) {
-          return res.status(404).json({ success: false, message: 'Mess plan not found.' })
+          return res.status(200).json({ success: false, message: 'Mess plan not found.' })
         }
   
         const mess = await MessProfile.findOne({

@@ -1,58 +1,59 @@
-const { DataTypes } = require('sequelize');
-const { sequelize } = require('../services/connection_services_')
-
-
 const Order = sequelize.define('Order', {
-  orderId: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true
-  },
+    orderId: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
 
-  messId: {
-    type: DataTypes.UUID,
-    allowNull: false,
-    references: { model: 'mess_profile', key: 'messId' },
-    onDelete: 'CASCADE'
-  },
+    messId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: { model: 'mess_profile', key: 'messId' },
+      onDelete: 'CASCADE'
+    },
 
-  planId: {
-    type: DataTypes.UUID,
-    allowNull: false,
-    references: { model: 'mess_plans', key: 'planId' },
-    onDelete: 'CASCADE'
-  },
+    planId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: { model: 'mess_plans', key: 'planId' },
+      onDelete: 'CASCADE'
+    },
 
-  userId: {
-    type: DataTypes.UUID,
-    allowNull: false,
-    references: { model: 'users', key: 'userId' },
-    onDelete: 'CASCADE'
-  },
+    userId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: { model: 'users', key: 'id' },
+      onDelete: 'CASCADE'
+    },
 
-  tokenCount: { type: DataTypes.INTEGER, allowNull: false },           // How many tokens ordered
-  totalPrice: { type: DataTypes.FLOAT, allowNull: false },             // Total price calculated
+    tokenCount: { type: DataTypes.INTEGER, allowNull: false },
+    totalPrice: { type: DataTypes.FLOAT, allowNull: false },
 
-  planType: {
-    type: DataTypes.ENUM('dine-in', 'delivery'),
-    allowNull: false                                                  // Type of plan ordered
-  },
+    orderType: {
+      type: DataTypes.ENUM('dine-in', 'take-away', 'delivery'),
+      allowNull: false
+    },
 
-  orderStatus: {
-    type: DataTypes.ENUM('pending', 'accepted', 'rejected', 'completed', 'expired'),
-    defaultValue: 'pending',
-    allowNull: false
-  },
+    orderStatus: {
+      type: DataTypes.ENUM('pending', 'accepted', 'rejected', 'completed', 'expired'),
+      defaultValue: 'pending',
+      allowNull: false
+    },
 
-  orderExpiresAt: { type: DataTypes.DATE, allowNull: false },          // When this order expires
-  orderedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },    // When the order was placed
+    tokenStatus: {
+      type: DataTypes.ENUM('pending', 'accepted', 'refunded'),
+      defaultValue: 'pending',
+      allowNull: false
+    },
 
-  createdAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-  updatedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
+    tokenIds: {
+      type: DataTypes.ARRAY(DataTypes.UUID),
+      allowNull: false,
+      defaultValue: []
+    },
 
+    orderExpiresAt: { type: DataTypes.DATE, allowNull: false },
+    orderedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+
+    createdAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+    updatedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
 }, {
   tableName: 'orders',
   timestamps: true
-});
-
-module.exports = Order
+})
