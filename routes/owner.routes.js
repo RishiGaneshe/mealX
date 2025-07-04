@@ -8,7 +8,7 @@ const PLAN= require('../controllers/owner.controller/messPlan.controller')
 
 router.get('/mess/all', OWNER.handleGetAllMess)
 
-router.get('/mess/:messId', OWNER.handleGetMessById)
+router.get('/mess/id/:messId', OWNER.handleGetMessById)
 
 router.get('/mess/plan/:messId', PLAN.getMessPlans)
 
