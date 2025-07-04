@@ -40,5 +40,5 @@ jobs:
           docker pull ${{ secrets.DOCKER_IMAGE }}:latest
           docker stop my-app || true
           docker rm my-app || true
-          docker run -d --name my-app -p 80:3000 ${{ secrets.DOCKER_IMAGE }}:latest
+          docker run -d --name my-app -p 7000:4000 ${{ secrets.DOCKER_IMAGE }}:latest
         EOF
