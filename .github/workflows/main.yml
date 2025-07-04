@@ -1,4 +1,4 @@
-name: Build & Deploy to Server
+name: Build and Deploy Mealx
 
 on:
   push:
@@ -50,5 +50,5 @@ jobs:
           sudo docker pull ${{ secrets.DOCKER_IMAGE }}:latest
           sudo docker stop my-app || true
           sudo docker rm my-app || true
-          sudo docker run -d --name my-app --env-file .env -p 7000:4000 ${{ secrets.DOCKER_IMAGE }}:latest
+          sudo docker run -d --name my-mealx --env-file .env -p 7000:4000 ${{ secrets.DOCKER_IMAGE }}:latest
           EOF
