@@ -62,8 +62,7 @@ jobs:
         password: ${{ secrets.SENDGRID_API_KEY }}
         subject: "🚀 Deployment ${{ job.status }} — mealX"
         to: abhishekganeshe33@gmail.com
-        from: ${{ secrets.SENDGRID_EMAIL_SENDER }}
-        content_type: text/plain
+        from: ${{ secrets.SENDGRID_SENDER_EMAIL }}
         body: |
           📢 *Deployment Notification*
     
