@@ -57,9 +57,9 @@ jobs:
       if: always()
       run: |
         echo "Sending deployment status email: ${{ job.status }}"
-    
+
         curl -X POST https://api.sendgrid.com/v3/mail/send \
-          -H "Authorization: Bearer ${{ secrets.SENDGRID_GITHUB_ACTION_KEY }}" \
+          -H "Authorization: Bearer ${{ secrets.SENDGRID_API_KEY }}" \
           -H "Content-Type: application/json" \
           -d "$(cat <<EOF
         {
@@ -70,19 +70,12 @@ jobs:
           "subject": "🚀 Deployment ${{ job.status }} — mealX",
           "content": [{
             "type": "text/plain",
-            "value": "📢 Deployment Notification
-        
-          🔧 Repository:   ${{ github.repository }}
-          🌿 Branch:       ${{ github.ref_name }}
-          👤 Triggered by: ${{ github.actor }}
-          📦 Status:       ${{ job.status }}
-          📝 Commit:       ${{ github.event.head_commit.message }}
-          🔗 View Run:     https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        
-          🤖 This is an automated message from your CI pipeline."
+            "value": "📢 Deployment Notification\n\n🔧 Repository:   ${{ github.repository }}\n🌿 Branch:       ${{ github.ref_name }}\n👤 Triggered by: ${{ github.actor }}\n📦 Status:       ${{ job.status }}\n📝 Commit:       ${{ github.event.head_commit.message }}\n🔗 View Run:     https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\n🤖 This is an automated message from your CI pipeline."
           }]
         }
         EOF
         )"
+
+
 
          
