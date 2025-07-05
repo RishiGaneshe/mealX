@@ -59,7 +59,7 @@ jobs:
         echo "Sending deployment status email: ${{ job.status }}"
     
         curl -X POST https://api.sendgrid.com/v3/mail/send \
-          -H "Authorization: Bearer ${{ secrets.SENDGRID_API_KEY }}" \
+          -H "Authorization: Bearer ${{ secrets.SENDGRID_GITHUB_ACTION_KEY }}" \
           -H "Content-Type: application/json" \
           -d "$(cat <<EOF
         {
