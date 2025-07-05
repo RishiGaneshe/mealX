@@ -62,7 +62,7 @@ jobs:
         password: ${{ secrets.SENDGRID_GITHUB_ACTION_KEY }}
         subject: "🚀 Deployment ${{ job.status }} — mealX"
         to: abhishekganeshe33@gmail.com
-        from: ${{ secrets.SENDGRID_GITHUB_ACTION_EMAIL }}
+        from: hrclouds1@gmail.com
         body: |
           📢 *Deployment Notification*
     
