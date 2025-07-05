@@ -50,7 +50,7 @@ jobs:
           sudo docker pull ${{ secrets.DOCKER_IMAGE }}:latest
           sudo docker stop my-mealx || true
           sudo docker rm my-mealx || true
-          sudo docker run -d --name my-mealx --env-file .env -p 7000:4000 ${{ secrets.DOCKER_IMAGE }}:latest
+          sudo docker run -d --restart=always --name my-mealx --env-file .env -p 7000:4000 ${{ secrets.DOCKER_IMAGE }}:latest
           sudo docker container prune -f
           sudo docker image prune -af --filter "until=24h"
           
