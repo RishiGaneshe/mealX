@@ -116,7 +116,7 @@ jobs:
         -H "Authorization: Bearer ${{ secrets.SENDGRID_GITHUB_ACTION_KEY }}" \
         -H "Content-Type: application/json" \
         -d "{
-          \"personalizations\": [{ \"to\": [{ \"email\": \"abhishekganeshe33@gmail.com\" }] }],
+          \"personalizations\": [{\"to\": [{\"email\": \"abhishekganeshe33@gmail.com\"}, {\"email\": \"rishiganeshe33@gmail.com\"}, {\"email\": \"ayushhkhale@gmail.com\"}]}],
           \"from\": { \"email\": \"abhishek.ganeshe@hrclouds.in\" },
           \"subject\": \"🚀 Deployment success — mealX\",
           \"content\": [{ \"type\": \"text/html\", \"value\": $(jq -Rs <<< \"$html_body\") }]
