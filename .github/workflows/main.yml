@@ -53,9 +53,10 @@ jobs:
           sudo docker run -d --name my-mealx --env-file .env -p 7000:4000 ${{ secrets.DOCKER_IMAGE }}:latest
           EOF
           
-    - name: Check for build failure and send email
+    - name: Notify on build failure
       if: always()
       run: |
+        echo "Checking job status: ${{ job.status }}"
         if [ "${{ job.status }}" != "success" ]; then
           echo "Sending failure notification"
           curl -X POST https://api.sendgrid.com/v3/mail/send \
@@ -65,15 +66,14 @@ jobs:
               "personalizations": [{
                 "to": [{ "email": "abhishekganeshe33@gmail.com" }]
               }],
-              "from": { "email": "abhishek.ganeshe@hrclouds.in " },
+              "from": { "email": "abhishek.ganeshe@hrclouds.in" },
               "subject": "❌ Build Failed — mealX",
               "content": [{
                 "type": "text/plain",
-                "value": "Build failed on branch ${{ github.ref }}. Commit: ${{ github.event.head_commit.message }}"
+                "value": "Build failed on branch ${{ github.ref }}.\nCommit: ${{ github.event.head_commit.message }}\nRun: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
               }]
             }'
         else
           echo "Build passed. No email needed."
         fi
-          -----------------------------------------------------
-          🤖 This is an automated message from your CI pipeline.
+         
