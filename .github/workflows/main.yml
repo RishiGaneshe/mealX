@@ -59,7 +59,7 @@ jobs:
         server_address: smtp.sendgrid.net
         server_port: 587
         username: apikey
-        password: ${{ secrets.SENDGRID_API_KEY }}
+        password: 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
         subject: "🚀 Deployment ${{ job.status }} — mealX"
         to: abhishekganeshe33@gmail.com
         from: ${{ secrets.SENDGRID_SENDER_EMAIL }}
