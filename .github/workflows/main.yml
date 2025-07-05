@@ -69,8 +69,20 @@ jobs:
           "from": { "email": "abhishek.ganeshe@hrclouds.in" },
           "subject": "🚀 Deployment ${{ job.status }} — mealX",
           "content": [{
-            "type": "text/plain",
-            "value": "📢 Deployment Notification\n\n🔧 Repository:   ${{ github.repository }}\n🌿 Branch:       ${{ github.ref_name }}\n👤 Triggered by: ${{ github.actor }}\n📦 Status:       ${{ job.status }}\n📝 Commit:       ${{ github.event.head_commit.message }}\n🔗 View Run:     https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\n🤖 This is an automated message from your CI pipeline."
+            "type": "text/html",
+            "value": "<html>
+              <body style='font-family: Arial, sans-serif; color: #333;'>
+                <h2>📢 Deployment Notification</h2>
+                <p><strong>🔧 Repository:</strong> ${{ github.repository }}</p>
+                <p><strong>🌿 Branch:</strong> ${{ github.ref_name }}</p>
+                <p><strong>👤 Triggered by:</strong> ${{ github.actor }}</p>
+                <p><strong>📦 Status:</strong> <span style='color: ${{ job.status == 'success' && \"green\" || \"red\" }};'>${{ job.status }}</span></p>
+                <p><strong>📝 Commit:</strong> ${{ github.event.head_commit.message }}</p>
+                <p><strong>🔗 View Run:</strong> <a href='https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}'>Click here</a></p>
+                <hr>
+                <p>🤖 This is an automated message from your CI pipeline.</p>
+              </body>
+            </html>"
           }]
         }
         EOF
