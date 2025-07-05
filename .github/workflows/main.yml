@@ -53,27 +53,36 @@ jobs:
           sudo docker run -d --name my-mealx --env-file .env -p 7000:4000 ${{ secrets.DOCKER_IMAGE }}:latest
           EOF
           
-    - name: Notify on build failure
+    - name: Send Build Notification Email
       if: always()
       run: |
-        echo "Checking job status: ${{ job.status }}"
-        if [ "${{ job.status }}" != "success" ]; then
-          echo "Sending failure notification"
-          curl -X POST https://api.sendgrid.com/v3/mail/send \
-            -H "Authorization: Bearer ${{ secrets.SENDGRID_GITHUB_ACTION_KEY }}" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "personalizations": [{
-                "to": [{ "email": "abhishekganeshe33@gmail.com" }]
-              }],
-              "from": { "email": "abhishek.ganeshe@hrclouds.in" },
-              "subject": "❌ Build Failed — mealX",
-              "content": [{
-                "type": "text/plain",
-                "value": "Build failed on branch ${{ github.ref }}.\nCommit: ${{ github.event.head_commit.message }}\nRun: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-              }]
-            }'
-        else
-          echo "Build passed. No email needed."
-        fi
+        echo "Sending deployment status email: ${{ job.status }}"
+    
+        curl -X POST https://api.sendgrid.com/v3/mail/send \
+          -H "Authorization: Bearer ${{ secrets.SENDGRID_API_KEY }}" \
+          -H "Content-Type: application/json" \
+          -d "$(cat <<EOF
+        {
+          "personalizations": [{
+            "to": [{ "email": "abhishekganeshe33@gmail.com" }]
+          }],
+          "from": { "email": "abhishek.ganeshe@hrclouds.in" },
+          "subject": "🚀 Deployment ${{ job.status }} — mealX",
+          "content": [{
+            "type": "text/plain",
+            "value": "📢 Deployment Notification
+        
+          🔧 Repository:   ${{ github.repository }}
+          🌿 Branch:       ${{ github.ref_name }}
+          👤 Triggered by: ${{ github.actor }}
+          📦 Status:       ${{ job.status }}
+          📝 Commit:       ${{ github.event.head_commit.message }}
+          🔗 View Run:     https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        
+          🤖 This is an automated message from your CI pipeline."
+          }]
+        }
+        EOF
+        )"
+
          
