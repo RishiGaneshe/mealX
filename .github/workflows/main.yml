@@ -57,7 +57,7 @@ jobs:
       if: always()
       run: |
         echo "Sending deployment status email: ${{ job.status }}"
-
+    
         curl -X POST https://api.sendgrid.com/v3/mail/send \
           -H "Authorization: Bearer ${{ secrets.SENDGRID_GITHUB_ACTION_KEY }}" \
           -H "Content-Type: application/json" \
@@ -76,7 +76,7 @@ jobs:
                 <p><strong>🔧 Repository:</strong> ${{ github.repository }}</p>
                 <p><strong>🌿 Branch:</strong> ${{ github.ref_name }}</p>
                 <p><strong>👤 Triggered by:</strong> ${{ github.actor }}</p>
-                <p><strong>📦 Status:</strong> <span style='color: ${{ job.status == 'success' && \"green\" || \"red\" }};'>${{ job.status }}</span></p>
+                <p><strong>📦 Status:</strong> <span>${{ job.status }}</span></p>
                 <p><strong>📝 Commit:</strong> ${{ github.event.head_commit.message }}</p>
                 <p><strong>🔗 View Run:</strong> <a href='https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}'>Click here</a></p>
                 <hr>
@@ -85,8 +85,9 @@ jobs:
             </html>"
           }]
         }
-        EOF
+         EOF
         )"
+
 
 
 
