@@ -60,20 +60,57 @@ jobs:
 
         html_body=$(cat <<'HTML'
         <html>
-          <body style='font-family: Arial, sans-serif; color: #333;'>
-            <h2>📢 Deployment Notification</h2>
-            <p><strong>🔧 Repository:</strong> RishiGaneshe/mealX</p>
-            <p><strong>🌿 Branch:</strong> main</p>
-            <p><strong>👤 Triggered by:</strong> RishiGaneshe</p>
-            <p><strong>📦 Status:</strong> <span>success</span></p>
-            <p><strong>📝 Commit:</strong> Update main.yml</p>
-            <p><strong>🔗 View Run:</strong> <a href='https://github.com/RishiGaneshe/mealX/actions/runs/16087399878'>Click here</a></p>
-            <hr>
-            <p>🤖 This is an automated message from your CI pipeline.</p>
+          <body style="font-family: Arial, sans-serif; background-color: #f4f6f8; color: #333; padding: 20px;">
+            <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); padding: 24px;">
+              <h2 style="color: #2c3e50;">🚀 MealX Deployment Status</h2>
+              <p style="margin-bottom: 20px; font-size: 14px; color: #555;">
+                Hello Team,<br><br>
+                This is to notify you that a new deployment process has been triggered and completed on the <strong>MealX</strong> project.
+                Below are the details of the deployment job run from the CI/CD pipeline.
+              </p>
+        
+              <table style="width: 100%; font-size: 14px; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 8px 0;"><strong>🔧 Repository:</strong></td>
+                  <td>RishiGaneshe/mealX</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0;"><strong>🌿 Branch:</strong></td>
+                  <td>main</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0;"><strong>👤 Triggered by:</strong></td>
+                  <td>RishiGaneshe</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0;"><strong>📦 Status:</strong></td>
+                  <td><span style="color: green; font-weight: bold;">✅ Success</span></td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0;"><strong>📝 Commit Message:</strong></td>
+                  <td>Update main.yml</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0;"><strong>🔗 CI Run Link:</strong></td>
+                  <td><a href="https://github.com/RishiGaneshe/mealX/actions/runs/16087399878" style="color: #1a73e8;">View Workflow</a></td>
+                </tr>
+              </table>
+        
+              <div style="margin-top: 24px; padding: 16px; background-color: #eafbea; border-left: 4px solid #2ecc71; border-radius: 4px; font-size: 13px;">
+                💡 <strong>Reminder:</strong> Always validate deployment results on the staging or production environment after receiving this message.
+              </div>
+        
+              <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;" />
+        
+              <p style="font-size: 12px; color: #888;">
+                🤖 This is an automated message from your CI pipeline. No action is required unless errors are reported.
+              </p>
+            </div>
           </body>
         </html>
         HTML
         )
+
     
         curl -X POST https://api.sendgrid.com/v3/mail/send \
         -H "Authorization: Bearer ${{ secrets.SENDGRID_GITHUB_ACTION_KEY }}" \
