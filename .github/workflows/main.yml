@@ -52,29 +52,28 @@ jobs:
           sudo docker rm my-mealx || true
           sudo docker run -d --name my-mealx --env-file .env -p 7000:4000 ${{ secrets.DOCKER_IMAGE }}:latest
           EOF
-    - name: Notify (Email)
+          
+    - name: Check for build failure and send email
       if: always()
-      uses: dawidd6/action-send-mail@v3
-      with:
-        server_address: smtp.sendgrid.net
-        server_port: 587
-        username: apikey
-        password: ${{ secrets.SENDGRID_GITHUB_ACTION_KEY }}
-        subject: "🚀 Deployment ${{ job.status }} — mealX"
-        to: abhishekganeshe33@gmail.com
-        from: abhishek.ganeshe@hrclouds.in
-        body: |
-          📢 *Deployment Notification*
-    
-          🔧 Repository:   ${{ github.repository }}
-          🌿 Branch:       ${{ github.ref_name }}
-          👤 Triggered by: ${{ github.actor }}
-          📦 Status:       ${{ job.status }}
-    
-          📅 Time:         ${{ github.event.head_commit.timestamp }}
-          📝 Commit:       ${{ github.event.head_commit.message }}
-    
-          🔗 View Run:     https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-    
+      run: |
+        if [ "${{ job.status }}" != "success" ]; then
+          echo "Sending failure notification"
+          curl -X POST https://api.sendgrid.com/v3/mail/send \
+            -H "Authorization: Bearer ${{ secrets.SENDGRID_GITHUB_ACTION_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "personalizations": [{
+                "to": [{ "email": "abhishekganeshe33@gmail.com" }]
+              }],
+              "from": { "email": "abhishek.ganeshe@hrclouds.in " },
+              "subject": "❌ Build Failed — mealX",
+              "content": [{
+                "type": "text/plain",
+                "value": "Build failed on branch ${{ github.ref }}. Commit: ${{ github.event.head_commit.message }}"
+              }]
+            }'
+        else
+          echo "Build passed. No email needed."
+        fi
           -----------------------------------------------------
           🤖 This is an automated message from your CI pipeline.
