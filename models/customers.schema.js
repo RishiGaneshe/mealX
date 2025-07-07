@@ -62,6 +62,10 @@ const CustomerProfile= sequelize.define('CustomerProfile',{
     },
     pincode: {
         type: DataTypes.STRING,
+    },
+    isActive: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true
     }
   }, {
     timestamps: true,
