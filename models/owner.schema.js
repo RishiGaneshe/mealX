@@ -5,7 +5,7 @@ const { sequelize } = require('../services/connection_services_');
 
 const OwnerProfile = sequelize.define('MessOwnerProfile', {
     userId: {
-      type: DataTypes.STRING,
+      type: DataTypes.UUID, 
       allowNull: false,
       unique: true,
       references: { model: 'users', key: 'id' }

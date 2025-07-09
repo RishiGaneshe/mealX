@@ -4,10 +4,10 @@ const  { sequelize } = require('../services/connection_services_')
 
 const User = sequelize.define('User', {
   id: {
-    type: DataTypes.STRING,
-    allowNull: false,
+    type: DataTypes.UUID, 
+    defaultValue: DataTypes.UUIDV4, 
     unique: true,
-    primaryKey: true,
+    primaryKey: true 
   },
   identifier: {
     type: DataTypes.STRING,

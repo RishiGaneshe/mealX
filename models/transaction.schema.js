@@ -12,7 +12,7 @@ const Transaction = sequelize.define('Transaction', {
   customerId: {
     type: DataTypes.UUID,
     allowNull: false,
-    references: { model: 'customer_profile', key: 'customerId' },
+    references: { model: 'users', key: 'id' },
     onDelete: 'CASCADE'
   },
 

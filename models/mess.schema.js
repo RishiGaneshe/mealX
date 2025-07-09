@@ -6,7 +6,7 @@ const MessProfile = sequelize.define('MessProfile', {
       messId: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
       messType: { type: DataTypes.ENUM('veg', 'non-veg', 'both'), allowNull: false },
       messOwnerId: {
-        type: DataTypes.STRING,
+        type: DataTypes.UUID, 
         allowNull: false,
         references: { model: 'users', key: 'id' },
         onDelete: 'CASCADE'

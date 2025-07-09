@@ -21,7 +21,7 @@ const sequelize= new Sequelize(DATABASE_URL, {
 exports.handlePostgreSQLConnection= async()=>{
     try{
         await sequelize.authenticate()
-        await sequelize.sync({ alter: true })
+        await sequelize.sync({ force: true })
         console.log('Postgres (Sequelize) Connected Successfully.')
         console.log('All models synced with database.')
     }catch(err){

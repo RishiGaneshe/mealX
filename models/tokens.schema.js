@@ -64,7 +64,7 @@ const Token = sequelize.define('Token', {
   purchasedBy: {
     type: DataTypes.UUID,
     allowNull: false,
-    references: { model: 'users', key: 'userId' },
+    references: { model: 'users', key: 'id' },
     onDelete: 'CASCADE'
   }
   

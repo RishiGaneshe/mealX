@@ -36,4 +36,4 @@ const MessPlan = sequelize.define('MessPlan', {
   timestamps: true
 })
 
-module.exports = MessPlan;
+module.exports = MessPlan

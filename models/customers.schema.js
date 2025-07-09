@@ -4,9 +4,10 @@ const { sequelize }= require('../services/connection_services_')
 
 const CustomerProfile= sequelize.define('CustomerProfile',{
     userId: {
-        type: DataTypes.STRING,
+        type: DataTypes.UUID, 
         allowNull: false,
         unique: true,
+        primaryKey: true, 
         references: { model: 'users', key: 'id' }
     },
     identifier:{

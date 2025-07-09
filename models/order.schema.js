@@ -1,5 +1,9 @@
 const Order = sequelize.define('Order', {
-    orderId: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+    orderId: { 
+      type: DataTypes.UUID, 
+      defaultValue: DataTypes.UUIDV4, 
+      primaryKey: true 
+    },
 
     messId: {
       type: DataTypes.UUID,
