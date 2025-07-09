@@ -4,8 +4,10 @@ const { upload }= require('../services/multer_services_')
 const OWNER= require('../controllers/owner.controller/owner.controller')
 const PLAN= require('../controllers/owner.controller/messPlan.controller')
 const CUSTOMERINFO= require('../controllers/owner.controller/customerInfo.controller')
+const RAZORPAY= require('../controllers/razorpay.controller/razorpay.controller')
 
 
+router.get('/profile', OWNER.getOwnerProfile)
 
 router.get('/mess/all', OWNER.handleGetAllMess)
 
@@ -41,6 +43,8 @@ router.post('/mess/plan/deactivate/:planId', PLAN.deactivateMessPlan)
 router.post('/mess/plan/delete/:planId', PLAN.deleteMessPlan)
 
 router.post('/mess/plan/update/:planId', PLAN.updateMessPlan)
+
+router.post('/mess/razorpay-order', RAZORPAY.handleCreateOrder)
 
 
 
