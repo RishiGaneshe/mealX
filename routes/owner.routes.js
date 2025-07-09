@@ -17,6 +17,14 @@ router.get('/mess/customer/:messId', CUSTOMERINFO.getCustomersForMess)
 
 router.get('/mess/:messId/customer/:customerId', CUSTOMERINFO.getCustomersById)
 
+router.get('/mess/:messId/customer/:customerId/active-plans', CUSTOMERINFO.getAllActivePlansByCustomerId)
+
+router.get('/mess/:messId/customer/:customerId/active-plans/:customerPlanId', CUSTOMERINFO.getActivePlanForCustomerByCustomerPlanId)
+
+router.get('/mess/:messId/customer/:customerId/stats/issued-plans', CUSTOMERINFO.getAllIssuedPlansToCustomerByCustomerId)
+
+router.get('/mess/:messId/customer/:customerId/stats/transactions', CUSTOMERINFO.getTransactionsByCustomerForMess)
+
 
 
 

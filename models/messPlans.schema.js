@@ -29,10 +29,8 @@ const MessPlan = sequelize.define('MessPlan', {
     type: DataTypes.ENUM('pending', 'active', 'deactive', 'deleted'),
     defaultValue: 'pending',
     allowNull: false
-  },
-
-  createdAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-  updatedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
+  }
+  
 }, {
   tableName: 'mess_plans',
   timestamps: true

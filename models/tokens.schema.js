@@ -9,10 +9,10 @@ const Token = sequelize.define('Token', {
     primaryKey: true
   },
 
-  userId: {
+  customerId: {
     type: DataTypes.UUID,
     allowNull: false,
-    references: { model: 'users', key: 'userId' },
+    references: { model: 'customer_profile', key: 'customerId' },
     onDelete: 'CASCADE'
   },
 
@@ -20,6 +20,13 @@ const Token = sequelize.define('Token', {
     type: DataTypes.UUID,
     allowNull: false,
     references: { model: 'mess_profile', key: 'messId' },
+    onDelete: 'CASCADE'
+  },
+
+  customerPlanId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: { model: 'customer_plans', key: 'customerPlanId' },
     onDelete: 'CASCADE'
   },
 
@@ -49,22 +56,18 @@ const Token = sequelize.define('Token', {
     allowNull: false
   },
 
+  tokenUsageDate: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+
   purchasedBy: {
     type: DataTypes.UUID,
     allowNull: false,
     references: { model: 'users', key: 'userId' },
     onDelete: 'CASCADE'
-  },
-
-  createdAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW
-  },
-
-  updatedAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW
   }
+  
 }, {
   tableName: 'tokens',
   timestamps: true

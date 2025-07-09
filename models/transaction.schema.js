@@ -9,11 +9,11 @@ const Transaction = sequelize.define('Transaction', {
     unique: true,
   },
 
-  userId: {
+  customerId: {
     type: DataTypes.UUID,
     allowNull: false,
-    references: { model: 'users', key: 'userId' },
-    onDelete: 'CASCADE',
+    references: { model: 'customer_profile', key: 'customerId' },
+    onDelete: 'CASCADE'
   },
 
   messId: {
@@ -28,6 +28,13 @@ const Transaction = sequelize.define('Transaction', {
     allowNull: false,
     references: { model: 'mess_plans', key: 'planId' },
     onDelete: 'CASCADE',
+  },
+
+  customerPlanId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: { model: 'customer_plans', key: 'customerPlanId' },
+    onDelete: 'CASCADE'
   },
 
   tokensPurchased: {
@@ -59,17 +66,8 @@ const Transaction = sequelize.define('Transaction', {
   razorpaySignature: {
     type: DataTypes.STRING,
     allowNull: true,
-  },
-
-  createdAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
-  },
-
-  updatedAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
-  },
+  }
+  
 }, {
   tableName: 'transactions',
   timestamps: true,

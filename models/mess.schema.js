@@ -52,8 +52,6 @@ const MessProfile = sequelize.define('MessProfile', {
       closeTime: { type: DataTypes.TIME },
       daysOpen: { type: DataTypes.ARRAY(DataTypes.STRING) }, // ['Monday', 'Saturday']
 
-      createdAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-      updatedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
   },{
     timestamps: true,
     tableName: 'mess_profile'

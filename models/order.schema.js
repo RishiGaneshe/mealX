@@ -49,10 +49,8 @@ const Order = sequelize.define('Order', {
     },
 
     orderExpiresAt: { type: DataTypes.DATE, allowNull: false },
-    orderedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-
-    createdAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-    updatedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
+    orderedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
+    
 }, {
   tableName: 'orders',
   timestamps: true
