@@ -98,7 +98,7 @@ exports.getAllActivePlansByCustomerId = async (req, res) => {
             return res.status(400).json({ success: false, message: 'messId is required and should be valid.' })
     }
   
-    if (!customerId) {
+    if (!customerId || !isUUID(customerId, 4)) {
       return res.status(400).json({ success: false, message: 'Invalid or missing customer ID.'})
     }
   

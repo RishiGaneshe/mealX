@@ -139,7 +139,7 @@ exports.handlePostVerifyMessEmail = async (req, res) => {
       }
   
       messProfile.isEmailVerified = true
-      messProfile.status= 'activated'
+      messProfile.status= 'active'
       await messProfile.save({ transaction: t })
 
       const ownerProfile = await OwnerProfile.findOne({
