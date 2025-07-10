@@ -1,7 +1,7 @@
 const { createRazorpayInstance }= require('../../services/razorpay_services_')
 const MessPlan= require('../../models/messPlans.schema')
 const MessProfile= require('../../models/mess.schema')
-
+const { isUUID } = require('validator')
 
 let RazorpayInstance
 const RzInstance= async()=>{
@@ -79,7 +79,35 @@ exports.handleCreateOrder = async (req, res) => {
       })
 
     } catch (err) {
-      console.error('Error in handleCreateOrder:', err.stack || err.message);
+      console.error('Error in handleCreateOrder:', err.stack || err.message)
       return res.status(500).json({ success: false, message: 'Internal server error while creating order.'})
     }
+}
+
+
+exports.handleVerifyPayment = async (req, res) => {
+  try {
+      const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body
+
+      if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+        return res.status(400).json({ success: false, message: 'Missing payment verification fields.'})
+      }
+
+      const generatedSignature = crypto
+        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+        .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+        .digest('hex')
+
+      const isSignatureValid = generatedSignature === razorpay_signature
+
+      if (!isSignatureValid) {
+        return res.status(400).json({ success: false, message: 'Payment verification failed. Invalid signature.' })
+      }
+
+      return res.status(200).json({ success: true, message: 'Payment verified successfully.'})
+
+  } catch (err) {
+      console.error('Error in handleVerifyPayment:', err.stack || err.message)
+      return res.status(500).json({ success: false, message: 'Internal server error while verifying payment.'})
+  }
 }
