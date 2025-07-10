@@ -46,6 +46,8 @@ router.post('/mess/plan/update/:planId', PLAN.updateMessPlan)
 
 router.post('/mess/razorpay-order', RAZORPAY.handleCreateOrder)
 
+router.post('/mess/payment-verify', RAZORPAY.handleVerifyPayment)
+
 
 
 

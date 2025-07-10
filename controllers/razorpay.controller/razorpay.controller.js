@@ -2,6 +2,8 @@ const { createRazorpayInstance }= require('../../services/razorpay_services_')
 const MessPlan= require('../../models/messPlans.schema')
 const MessProfile= require('../../models/mess.schema')
 const { isUUID } = require('validator')
+const crypto= require('crypto')
+
 
 let RazorpayInstance
 const RzInstance= async()=>{
@@ -95,7 +97,7 @@ exports.handleVerifyPayment = async (req, res) => {
       }
 
       const generatedSignature = crypto
-        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+        .createHmac('sha256', process.env.RazorPay_Secret)
         .update(`${razorpay_order_id}|${razorpay_payment_id}`)
         .digest('hex')
 
@@ -108,7 +110,7 @@ exports.handleVerifyPayment = async (req, res) => {
       return res.status(200).json({ success: true, message: 'Payment verified successfully.'})
 
   } catch (err) {
-      console.error('Error in handleVerifyPayment:', err.stack || err.message)
-      return res.status(500).json({ success: false, message: 'Internal server error while verifying payment.'})
+      console.error('Error in handleVerifyPayment:', err)
+      return res.status(500).json({ success: false, message: 'Internal server error'})
   }
 }
