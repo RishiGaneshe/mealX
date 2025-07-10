@@ -67,7 +67,6 @@ exports.handleSendEmailForSignUp = async (req, res) => {
         }else{
             await User.create(
                 {
-                  id: crypto.randomBytes(8).toString('hex'),
                   identifier: identifier,
                   identifierType: identifierType,
                   username: username,
