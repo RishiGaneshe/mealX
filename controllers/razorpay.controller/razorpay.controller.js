@@ -49,17 +49,18 @@ exports.handleCreateOrder = async (req, res) => {
         return res.status(400).json({ success: false, message: 'This plan is not active and cannot be purchased.'})
       }
   
-      const amountInPaise = Math.round(plan.totalPrice * 100)
+      const amountInPaise = Math.round(plan.price * 100)
   
       const options = {
         amount: amountInPaise,
         currency: 'INR',
-        receipt: `receipt_plan_${planId}_${Date.now()}`,
+        receipt: `receipt_${Date.now()}`,
         payment_capture: 1,
       }
   
-      const order = await RazorpayInstance.orders.create(options);
-  
+      const order = await RazorpayInstance.orders.create(options)
+      console.log('Razorpay order created successfully.')
+
       return res.status(200).json({
         success: true,
         message: 'Razorpay order created successfully.',
@@ -74,12 +75,12 @@ exports.handleCreateOrder = async (req, res) => {
           name: plan.name,
           price: plan.price,
           durationDays: plan.durationDays,
-          totalPrice: plan.totalPrice,
+          totalPrice: plan.price,
         },
       })
 
     } catch (err) {
-      console.error('Error in handleCreateOrder:', err.stack || err.message)
+      console.error('Error in handleCreateOrder:', err)
       return res.status(500).json({ success: false, message: 'Internal server error while creating order.'})
     }
 }
