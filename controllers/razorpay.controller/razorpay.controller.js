@@ -8,6 +8,7 @@ const Transaction= require('../../models/transaction.schema')
 const CustomerPlan= require('../../models/customerPlans.schema')
 const User= require('../../models/user.schema')
 const CustomerProfile= require('../../models/customers.schema')
+const { sequelize } = require('../services/connection_services_')
 
 
 let RazorpayInstance

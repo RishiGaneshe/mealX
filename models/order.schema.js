@@ -1,3 +1,6 @@
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../services/connection_services_')
+
 const Order = sequelize.define('Order', {
     orderId: { 
       type: DataTypes.UUID, 

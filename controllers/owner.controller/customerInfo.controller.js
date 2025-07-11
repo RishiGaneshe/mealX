@@ -122,7 +122,7 @@ exports.getAllActivePlansByCustomerId = async (req, res) => {
                 },
             },
             order: [['expiryDate', 'ASC']],
-            attributes: [ 'customerPlanId', 'planId', 'messId', 'name', 'price', 'durationDays', 'totalPrice', 'imageUrl', 'purchaseDate', 'expiryDate','status' ]
+            attributes: [ 'customerPlanId', 'planId', 'messId', 'name', 'price', 'durationDays', 'imageUrl', 'purchaseDate', 'expiryDate','status' ]
         })
     
         return res.status(200).json({
@@ -218,7 +218,7 @@ exports.getAllIssuedPlansToCustomerByCustomerId = async (req, res) => {
         limit,
         attributes: [
           'customerPlanId', 'planId', 'messId', 'name', 'price', 'durationDays',
-          'totalPrice', 'purchaseDate', 'expiryDate', 'purchasedBy', 'status'
+           'purchaseDate', 'expiryDate', 'purchasedBy', 'status'
         ]
       })
   
