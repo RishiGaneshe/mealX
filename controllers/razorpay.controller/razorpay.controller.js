@@ -158,7 +158,7 @@ exports.handleVerifyPayment = async (req, res) => {
         purchaseDate: today,
         expiryDate: expiryDate,
         issuedTokenCount: plan.totalTokens,
-        issuedTokens: [], // To be populated after token generation
+        issuedTokens: [], 
         transactionId: razorpay_payment_id,
         status: 'active',
         purchasedBy: req.user.id,
@@ -201,9 +201,20 @@ exports.handleVerifyPayment = async (req, res) => {
         paymentMethod: 'razorpay',
         razorpaySignature: razorpay_signature
       }, { transaction: t })
+
+      const messIds = customer.mess_ids || []
+
+      if (!messIds.includes(plan.messId)) {
+        messIds.push(plan.messId)
+        await CustomerProfile.update(
+          { mess_ids: messIds },
+          { where: { userId: customerId }, transaction: t }
+        )
+      }
   
       await t.commit()
-  
+      console.log('Payment verified and tokens issued successfully.')
+
       return res.status(200).json({
         success: true,
         message: 'Payment verified and tokens issued successfully.',
