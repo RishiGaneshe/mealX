@@ -31,6 +31,7 @@ exports.createMessPlan = async (req, res) => {
               menu: parsedMenu,
               durationDays: req.body.durationDays,
               price: req.body.price,
+              totalTokens: req.body.totalTokens
         })
   
         if (error) {
@@ -53,19 +54,15 @@ exports.createMessPlan = async (req, res) => {
         const aws_folder= `test`
         const s3Url = await uploadFileToS3(file, aws_folder)
   
-        const currentDate = new Date()
-        const expiryDate = new Date(currentDate)
-        expiryDate.setDate(expiryDate.getDate() + parseInt(req.body.durationDays))
-  
         const newPlan = await MessPlan.create({
           messId: req.body.messId,
           name: req.body.name,
           description: req.body.description,
           menu: parsedMenu,
           durationDays: req.body.durationDays,
-          expiryDate,
           imageUrl: s3Url,
-          price: req.body.price
+          price: req.body.price,
+          totalTokens: req.body.totalTokens
         })
         
         console.log('Mess plan created successfully')

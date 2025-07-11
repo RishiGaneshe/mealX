@@ -3,6 +3,11 @@ const MessPlan= require('../../models/messPlans.schema')
 const MessProfile= require('../../models/mess.schema')
 const { isUUID } = require('validator')
 const crypto= require('crypto')
+const Token= require('../../models/tokens.schema')
+const Transaction= require('../../models/transaction.schema')
+const CustomerPlan= require('../../models/customerPlans.schema')
+const User= require('../../models/user.schema')
+const CustomerProfile= require('../../models/customers.schema')
 
 
 let RazorpayInstance
@@ -89,11 +94,20 @@ exports.handleCreateOrder = async (req, res) => {
 
 
 exports.handleVerifyPayment = async (req, res) => {
+  let t
   try {
-      const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body
+      const { razorpay_order_id, razorpay_payment_id, razorpay_signature, customerId, planId, customerPaymentType } = req.body
 
       if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
         return res.status(400).json({ success: false, message: 'Missing payment verification fields.'})
+      }
+
+      if (!planId || !isUUID(planId, 4)) {
+        return res.status(400).json({ success: false, message: 'planId is required and should be valid.' })
+      }
+
+      if (!customerId || !isUUID(customerId, 4)) {
+        return res.status(400).json({ success: false, message: 'customerId is required and should be valid.' })
       }
 
       const generatedSignature = crypto
@@ -107,9 +121,99 @@ exports.handleVerifyPayment = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Payment verification failed. Invalid signature.' })
       }
 
-      return res.status(200).json({ success: true, message: 'Payment verified successfully.'})
+      const plan = await MessPlan.findOne({ where: { planId, status: 'active' } })
+        if (!plan) {
+          return res.status(404).json({ success: false, message: 'Mess plan not found or inactive.' })
+        }
+
+      const ownerId= req.user.id
+      const mess = await MessProfile.findOne({ where: { messId: plan.messId, messOwnerId: ownerId } }) 
+        if (!mess) {
+            return res.status(403).json({ success: false, message: 'Access denied. This mess does not belong to the authenticated owner.'})
+        }
+
+      const customer = await CustomerProfile.findOne({ where: { userId: customerId } })
+        if (!customer) {
+          return res.status(404).json({ success: false, message: 'Customer not found.' })
+        }
+  
+      const today = new Date().toISOString().split('T')[0] // "YYYY-MM-DD"
+      const durationDays = plan.durationDays
+
+      const expiryDateObj = new Date(today)
+      expiryDateObj.setDate(expiryDateObj.getDate() + durationDays)
+      const expiryDate = expiryDateObj.toISOString().split('T')[0] // "YYYY-MM-DD"
+
+      t = await sequelize.transaction()
+
+      const customerPlan = await CustomerPlan.create({
+        customerId,
+        planId,
+        messId: plan.messId,
+        name: plan.name,
+        price: plan.price,
+        durationDays: plan.durationDays,
+        imageUrl: plan.imageUrl,
+        purchaseDate: today,
+        expiryDate: expiryDate,
+        issuedTokenCount: plan.totalTokens,
+        issuedTokens: [], // To be populated after token generation
+        transactionId: razorpay_payment_id,
+        status: 'active',
+        purchasedBy: req.user.id,
+        customerPaymentType: customerPaymentType
+      }, { transaction: t })
+  
+      const tokenEntries = []
+      const issuedTokenIds = []
+  
+      for (let i = 0; i < plan.totalTokens; i++) {
+        const tokenId = crypto.randomUUID()
+        issuedTokenIds.push(tokenId)
+        tokenEntries.push({
+          tokenId,
+          customerId,
+          messId: plan.messId,
+          customerPlanId: customerPlan.customerPlanId,
+          status: 'available',
+          tokenPrice: plan.price / plan.totalTokens,
+          transactionId: razorpay_payment_id,
+          purchaseDate: today,
+          expiryDate: expiryDate,
+          purchasedBy: req.user.id
+        })
+      }
+  
+      await Token.bulkCreate(tokenEntries, { transaction: t })
+      await customerPlan.update({ issuedTokens: issuedTokenIds }, { transaction: t })
+  
+      await Transaction.create({
+        transactionId: razorpay_payment_id,
+        customerId,
+        messId: plan.messId,
+        planId: plan.planId,
+        customerPlanId: customerPlan.customerPlanId,
+        tokensPurchased: plan.totalTokens,
+        amount: plan.price,
+        currency: 'INR',
+        status: 'captured',
+        paymentMethod: 'razorpay',
+        razorpaySignature: razorpay_signature
+      }, { transaction: t })
+  
+      await t.commit()
+  
+      return res.status(200).json({
+        success: true,
+        message: 'Payment verified and tokens issued successfully.',
+        data: {
+          customerPlanId: customerPlan.customerPlanId,
+          tokensIssued: issuedTokenIds.length
+        }
+      })
 
   } catch (err) {
+      if (t) await t.rollback()
       console.error('Error in handleVerifyPayment:', err)
       return res.status(500).json({ success: false, message: 'Internal server error'})
   }

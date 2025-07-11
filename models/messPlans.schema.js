@@ -18,11 +18,11 @@ const MessPlan = sequelize.define('MessPlan', {
   name: { type: DataTypes.STRING, allowNull: false },                        
   description: { type: DataTypes.TEXT, allowNull: false },                   
   menu: { type: DataTypes.ARRAY(DataTypes.STRING), allowNull: false },
-  durationDays: { type: DataTypes.INTEGER, allowNull: false },              
-  expiryDate: { type: DataTypes.DATE, allowNull: false },                   
+  durationDays: { type: DataTypes.INTEGER, allowNull: false },                               
   imageUrl: { type: DataTypes.STRING },                                      
   price: { type: DataTypes.FLOAT, allowNull: false },                        
-
+  totalTokens: { type: DataTypes.INTEGER, allowNull: false },
+  
   usageCount: { type: DataTypes.INTEGER, defaultValue: 0 },                 
 
   status: {

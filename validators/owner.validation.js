@@ -107,7 +107,8 @@ exports.validateMessPlan = Joi.object({
     .required(),
 
   durationDays: Joi.number().integer().min(1).max(365).required(),
-  price: Joi.number().min(1).required()
+  price: Joi.number().min(1).required(),
+  totalTokens: Joi.number().integer().min(1).required(),
 })
 
 
@@ -127,8 +128,7 @@ exports.updateMessPlanSchema = Joi.object({
         )
         .min(1),
 
-  durationDays: Joi.number().integer().min(1).max(365).required(),
-  expiryDate: Joi.date().greater('now'),
+  durationDays: Joi.number().integer().min(1).max(365),
   imageUrl: Joi.string().uri(),
   price: Joi.number().positive(),
 })

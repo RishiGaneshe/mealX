@@ -32,7 +32,6 @@ const CustomerPlan = sequelize.define('CustomerPlan', {
   name: { type: DataTypes.STRING, allowNull: false },
   price: { type: DataTypes.FLOAT, allowNull: false }, 
   durationDays: { type: DataTypes.INTEGER, allowNull: false },                     
-  totalPrice: { type: DataTypes.FLOAT, allowNull: false },
   imageUrl: { type: DataTypes.STRING },
 
   purchaseDate: {
