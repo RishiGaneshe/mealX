@@ -134,5 +134,61 @@ exports.updateMessPlanSchema = Joi.object({
 })
 
 
+exports.addCustomerToMessSchema = Joi.object({
+  identifier: Joi.string().trim().required().messages({
+    'string.empty': 'Identifier is required.',
+    'any.required': 'Identifier is required.'
+  })
+})
+
+
+exports.verifyAddCustomerToMessSchema = Joi.object({
+  messId: Joi.string()
+    .guid({ version: 'uuidv4' })
+    .required()
+    .label('Mess ID'),
+
+  identifier: Joi.string()
+    .required()
+    .label('Identifier'),
+
+  otp: Joi.string()
+    .pattern(/^\d{6}$/)
+    .required()
+    .label('OTP')
+    .messages({
+      'string.pattern.base': 'OTP must be a 6-digit number.'
+    }),
+
+  requestId: Joi.string()
+    .guid({ version: 'uuidv4' })
+    .required()
+    .label('Request ID'),
+
+  context: Joi.string()
+    .valid('add-customer')
+    .required()
+    .label('Context'),
+
+  identifierType: Joi.string()
+    .valid('email', 'phone')
+    .required()
+    .label('Identifier Type'),
+}).custom((value, helpers) => {
+  const { identifier, identifierType } = value
+
+  if (identifierType === 'email' && !/^\S+@\S+\.\S+$/.test(identifier)) {
+    return helpers.message('Identifier must be a valid email.')
+  }
+
+  if (identifierType === 'phone' && !/^\d{10}$/.test(identifier)) {
+    return helpers.message('Identifier must be a valid 10-digit phone number.')
+  }
+
+  return value
+})
+
+
+
 
 

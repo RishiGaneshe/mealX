@@ -1,4 +1,5 @@
 const { Op } = require('sequelize')
+const { isUUID } = require('validator')
 const OTP= require('../../models/otp.schema')
 const MessProfile= require('../../models/mess.schema')
 const OwnerProfile= require('../../models/owner.schema')
@@ -8,7 +9,6 @@ const { sequelize } = require('../../services/connection_services_')
 const { saveOtpInDatabase,  } = require('../../database/otp_services_')
 const { uploadFileToS3 }= require('../../services/s3FileUpload_services')
 const { validateMessProfile, fieldValidation_emailVerification, validateMessPlan }= require('../../validators/owner.validation')
-const { isUUID } = require('validator')
 
 
 

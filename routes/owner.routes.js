@@ -5,6 +5,7 @@ const OWNER= require('../controllers/owner.controller/owner.controller')
 const PLAN= require('../controllers/owner.controller/messPlan.controller')
 const CUSTOMERINFO= require('../controllers/owner.controller/customerInfo.controller')
 const RAZORPAY= require('../controllers/razorpay.controller/razorpay.controller')
+const SUBMITTOKENS= require('../controllers/owner.controller/submitTokens.controller')
 
 
 router.get('/profile', OWNER.getOwnerProfile)
@@ -47,6 +48,14 @@ router.post('/mess/plan/update/:planId', PLAN.updateMessPlan)
 router.post('/mess/razorpay-order', RAZORPAY.handleCreateOrder)
 
 router.post('/mess/payment-verify', RAZORPAY.handleVerifyPayment)
+
+router.post('/customer/add', CUSTOMERINFO.postAddCustomerToMess)
+
+router.post('/customer/verify', CUSTOMERINFO.postVerifyAddCustomerToMess)
+
+router.post('/token/submit/initiate', SUBMITTOKENS.postInitiateTokenSubmission)
+
+router.post('/token/submit/verify', SUBMITTOKENS.postVerifyTokenSubmission)
 
 
 

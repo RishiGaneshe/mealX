@@ -1,9 +1,14 @@
 const { Op } = require('sequelize')
-const CustomerProfile = require('../../models/customers.schema')
-const MessProfile= require('../../models/mess.schema')
-const CustomerPlan= require('../../models/customerPlans.schema')
-const Transaction= require('../../models/transaction.schema')
 const { isUUID } = require('validator')
+const User= require('../../models/mess.schema')
+const MessProfile= require('../../models/mess.schema')
+const Transaction= require('../../models/transaction.schema')
+const CustomerProfile = require('../../models/customers.schema')
+const CustomerPlan= require('../../models/customerPlans.schema')
+const { sendSignUpOTP }= require('../../services/email_services_')
+const { sequelize } = require('../../services/connection_services_')
+const { saveOtpInDatabase, readOtpFromDatabase }= require('../../database/otp_services_')
+const { addCustomerToMessSchema, verifyAddCustomerToMessSchema }= require('../../validators/owner.validation')
 
 
 
@@ -279,4 +284,100 @@ exports.getTransactionsByCustomerForMess = async (req, res) => {
       console.error('Error fetching transactions:', error.stack || error)
       return res.status(500).json({ success: false, message: 'Internal server error'})
    }
+}
+
+
+exports.postAddCustomerToMess = async (req, res) => {
+  const { error, value } = addCustomerToMessSchema.validate(req.body)
+    if (error) {
+      return res.status(400).json({ success: false, message: error.details[0].message })
+    }
+
+  const { identifier } = value
+
+  const t= await sequelize.transaction()
+  try {
+      const customer = await CustomerProfile.findOne({
+        where: { identifier },
+        transaction: t,
+        lock: t.LOCK.UPDATE,
+      })
+        
+      if (!customer || !customer.identifier || !customer.identifierType) {
+        await t.rollback();
+        return res.status(404).json({ success: false, message: 'Customer not found.' })
+      }
+
+      const context= 'add-customer'
+      const otpRecord= await saveOtpInDatabase(identifier, customer.identifierType, context, t)
+      
+      if( customer.identifierType === 'email'){
+            await sendSignUpOTP(identifier, otpRecord.otp)
+      }else if( customer.identifierType === 'phone'){
+          // TODO: implement send OTP via SMS
+      }
+
+      await t.commit()
+
+      console.log('OTP sent successfully.')
+      return res.status(200).json({ success: true, message: 'OTP sent successfully.', identifier: identifier, identifierType: otpRecord.identifierType, otp: otpRecord.otp, requestId: otpRecord.requestId, context: context })
+
+  } catch (error) {
+      await t.rollback() 
+      console.error('Error in handleAddCustomerToMess:', error)
+      return res.status(500).json({ success: false, message: 'Internal server error.' })
+  }
+}
+
+
+exports.postVerifyAddCustomerToMess = async (req, res) => {
+  const { error, value } = verifyAddCustomerToMessSchema.validate(req.body)
+    if (error) {
+      return res.status(400).json({ success: false, message: error.details[0].message })
+    }
+
+  const { identifier, identifierType, otp, requestId, context, messId } = value
+
+  const t = await sequelize.transaction()
+  try {
+       const ownerId= req.user.id
+       const mess = await MessProfile.findOne({ where: { messId, messOwnerId: ownerId } })
+        if (!mess) {
+            await t.rollback()
+            return res.status(403).json({ success: false, message: 'Access denied. This mess does not belong to the authenticated owner.'})
+        }
+
+       const otpRecord= await readOtpFromDatabase(identifier, identifierType, requestId, context, otp, t)
+       if (!otpRecord) {
+          await t.rollback()
+          return res.status(400).json({ success: false, message: 'Invalid or expired OTP.' })
+       }
+
+       const customer = await CustomerProfile.findOne({
+          where: { identifier, identifierType },
+          transaction: t,
+          lock: t.LOCK.UPDATE,
+       })
+
+       if (!customer) {
+          await t.rollback()
+          return res.status(404).json({ success: false, message: 'Customer not found.' })
+       }
+
+       if (customer.mess_ids.includes(messId)) {
+          await t.rollback();
+          return res.status(409).json({ success: false, message: 'Mess already added to customer profile.' })
+       }
+
+    customer.mess_ids.push(messId)
+    await customer.save({ transaction: t })
+
+    await t.commit()
+    return res.status(200).json({ success: true, message: 'Customer successfully added to mess.', messId, identifier })
+
+  } catch (error) {
+    await t.rollback()
+    console.error('Error in verifyAddCustomerToMess:', error)
+    return res.status(500).json({ success: false, message: 'Internal server error.' })
+  }
 }
