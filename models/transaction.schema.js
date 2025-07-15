@@ -66,6 +66,12 @@ const Transaction = sequelize.define('Transaction', {
   razorpaySignature: {
     type: DataTypes.STRING,
     allowNull: true,
+  },
+
+  transactionBy: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: { model: 'users', key: 'id' }
   }
   
 }, {
@@ -74,5 +80,5 @@ const Transaction = sequelize.define('Transaction', {
 })
 
 
-module.exports = Transaction;
+module.exports = Transaction
 

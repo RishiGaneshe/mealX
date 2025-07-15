@@ -6,23 +6,24 @@ const PLAN= require('../controllers/owner.controller/messPlan.controller')
 const CUSTOMERINFO= require('../controllers/owner.controller/customerInfo.controller')
 const RAZORPAY= require('../controllers/razorpay.controller/razorpay.controller')
 const SUBMITTOKENS= require('../controllers/owner.controller/submitTokens.controller')
+const STATS=require('../controllers/owner.controller/stats.controller')
 
 
-router.get('/profile', OWNER.getOwnerProfile)
+router.get('/profile', OWNER.getOwnerProfile)  // done
 
-router.get('/mess/all', OWNER.handleGetAllMess)
+router.get('/mess/all', OWNER.handleGetAllMess)  // done
 
-router.get('/mess/id/:messId', OWNER.handleGetMessById)
+router.get('/mess/id/:messId', OWNER.handleGetMessById)  // done
 
-router.get('/mess/plan/:messId', PLAN.getMessPlans)
+router.get('/mess/plan/:messId', PLAN.getMessPlans)  //done
 
-router.get('/mess/customer/:messId', CUSTOMERINFO.getCustomersForMess)
+router.get('/mess/customer/:messId', CUSTOMERINFO.getCustomersForMess) //done
 
-router.get('/mess/:messId/customer/:customerId', CUSTOMERINFO.getCustomersById)
+router.get('/mess/:messId/customer/:customerId', CUSTOMERINFO.getCustomersById)  // done
 
-router.get('/mess/:messId/customer/:customerId/active-plans', CUSTOMERINFO.getAllActivePlansByCustomerId)
+router.get('/mess/:messId/customer/:customerId/active-plans', CUSTOMERINFO.getAllActivePlansByCustomerId)  // done
 
-router.get('/mess/:messId/customer/:customerId/active-plans/:customerPlanId', CUSTOMERINFO.getActivePlanForCustomerByCustomerPlanId)
+router.get('/mess/:messId/customer/:customerId/active-plans/:customerPlanId', CUSTOMERINFO.getActivePlanForCustomerByCustomerPlanId) // done
 
 router.get('/mess/:messId/customer/:customerId/stats/issued-plans', CUSTOMERINFO.getAllIssuedPlansToCustomerByCustomerId)
 
@@ -31,31 +32,36 @@ router.get('/mess/:messId/customer/:customerId/stats/transactions', CUSTOMERINFO
 
 
 
-router.post('/mess',upload.fields([ { name: 'logoFile', maxCount: 1 }, { name: 'fssaiDoc', maxCount: 1 }, { name: 'activationDoc', maxCount: 1 }]), OWNER.createMessProfile )
 
-router.post('/mess/otp', OWNER.handlePostVerifyMessEmail)
+router.post('/mess',upload.fields([ { name: 'logoFile', maxCount: 1 }, { name: 'fssaiDoc', maxCount: 1 }, { name: 'activationDoc', maxCount: 1 }]), OWNER.createMessProfile )  // done
 
-router.post('/mess/plan/create', upload.single('image'), PLAN.createMessPlan)
+router.post('/mess/otp', OWNER.handlePostVerifyMessEmail)  // done
 
-router.post('/mess/plan/activate/:planId', PLAN.activateMessPlan)
+router.post('/mess/plan/create', upload.single('image'), PLAN.createMessPlan)  // done
 
-router.post('/mess/plan/deactivate/:planId', PLAN.deactivateMessPlan)
+router.post('/mess/plan/activate/:planId', PLAN.activateMessPlan)   // done
 
-router.post('/mess/plan/delete/:planId', PLAN.deleteMessPlan)
+router.post('/mess/plan/deactivate/:planId', PLAN.deactivateMessPlan)  // done
 
-router.post('/mess/plan/update/:planId', PLAN.updateMessPlan)
+router.post('/mess/plan/delete/:planId', PLAN.deleteMessPlan)  // done
+  
+router.post('/mess/plan/update/:planId', PLAN.updateMessPlan)  // done
 
-router.post('/mess/razorpay-order', RAZORPAY.handleCreateOrder)
+router.post('/mess/razorpay-order', RAZORPAY.handleCreateOrder)   // done
 
-router.post('/mess/payment-verify', RAZORPAY.handleVerifyPayment)
+router.post('/mess/payment-verify', RAZORPAY.handleVerifyPayment) // done
 
-router.post('/customer/add', CUSTOMERINFO.postAddCustomerToMess)
+router.post('/customer/add', CUSTOMERINFO.postAddCustomerToMess)  // done
 
-router.post('/customer/verify', CUSTOMERINFO.postVerifyAddCustomerToMess)
+router.post('/customer/verify', CUSTOMERINFO.postVerifyAddCustomerToMess)  // done
 
-router.post('/token/submit/initiate', SUBMITTOKENS.postInitiateTokenSubmission)
+router.post('/token/submit/initiate', SUBMITTOKENS.postInitiateTokenSubmission)  // done
 
-router.post('/token/submit/verify', SUBMITTOKENS.postVerifyTokenSubmission)
+router.post('/token/submit/verify', SUBMITTOKENS.postVerifyTokenSubmission)   // done
+
+router.post('/mess/stats/transactions', STATS.getMessActivity )   // done
+
+router.post('/mess/stats/customer/transactions', STATS.getCustomerActivity)  // done
 
 
 

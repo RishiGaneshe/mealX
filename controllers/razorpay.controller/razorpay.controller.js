@@ -199,6 +199,7 @@ exports.handleVerifyPayment = async (req, res) => {
         currency: 'INR',
         status: 'captured',
         paymentMethod: 'razorpay',
+        transactionBy: req.user.id,
         razorpaySignature: razorpay_signature
       }, { transaction: t })
 
