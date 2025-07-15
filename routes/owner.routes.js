@@ -47,6 +47,8 @@ router.post('/mess/plan/delete/:planId', PLAN.deleteMessPlan)  // done
   
 router.post('/mess/plan/update/:planId', PLAN.updateMessPlan)  // done
 
+router.post('/mess/plan/record', OWNER.getMessPlanActivityLogs) 
+
 router.post('/mess/razorpay-order', RAZORPAY.handleCreateOrder)   // done
 
 router.post('/mess/payment-verify', RAZORPAY.handleVerifyPayment) // done

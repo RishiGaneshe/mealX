@@ -9,6 +9,7 @@ const { sequelize } = require('../../services/connection_services_')
 const { saveOtpInDatabase,  } = require('../../database/otp_services_')
 const { uploadFileToS3 }= require('../../services/s3FileUpload_services')
 const { validateMessProfile, fieldValidation_emailVerification, validateMessPlan }= require('../../validators/owner.validation')
+const MessPlanActivityLog = require('../../models/plansRecord.schema')
 
 
 
@@ -222,8 +223,8 @@ exports.handleGetMessById = async (req, res) => {
         return res.status(400).json({ success: false, message: 'messId is required and should be valid.' })
       }
 
-      const mess = await MessProfile.findOne({ where: { messId } })
-
+      const ownerId= req.user.id
+      const mess = await MessProfile.findOne({ where: { messId, messOwnerId: ownerId } })
       if (!mess) {
         return res.status(404).json({ success: false, message: 'Mess not found with the provided ID.'})
       }
@@ -259,7 +260,8 @@ exports.updateMessProfile = async (req, res) => {
 
         t = await sequelize.transaction()
 
-        const mess = await MessProfile.findOne({ where: { messId }, transaction: t })
+        const ownerId= req.user.id
+        const mess = await MessProfile.findOne({ where: { messId, messOwnerId: ownerId  }, transaction: t })
         if (!mess) {
           await t.rollback()
           return res.status(404).json({ success: false, message: 'Mess profile not found' })
@@ -341,6 +343,50 @@ exports.getOwnerProfile = async (req, res) => {
   } catch (err) {
     console.error('Error fetching owner profile:', err.stack || err.message)
     return res.status(500).json({ success: false, message: 'Internal server error.'})
+  }
+}
+
+
+exports.getMessPlanActivityLogs = async (req, res) => {
+  try {
+    const { messId } = req.params;
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.limit) || 10
+
+    if (!isUUID(messId, 4)) {
+      return res.status(400).json({ success: false, message: 'Invalid messId' });
+    }
+
+    const ownerId= req.user.id
+    const mess = await MessProfile.findOne({ where: { messId, messOwnerId: ownerId  }})
+    if (!mess) {
+      return res.status(404).json({ success: false, message: 'Mess profile not found' })
+    }
+
+    const offset = (page - 1) * limit
+
+    const { count, rows: logs } = await MessPlanActivityLog.findAndCountAll({
+      where: { messId },
+      order: [['createdAt', 'DESC']],
+      offset,
+      limit
+    })
+
+    return res.status(200).json({
+      success: true,
+      message: 'Activity logs fetched successfully',
+      data: logs,
+      pagination: {
+        totalRecords: count,
+        currentPage: page,
+        totalPages: Math.ceil(count / limit),
+        pageSize: limit
+      }
+    })
+
+  } catch (err) {
+    console.error('Error fetching mess plan activity logs:', err)
+    return res.status(500).json({ success: false, message: 'Internal server error' })
   }
 }
 
