@@ -349,12 +349,12 @@ exports.getOwnerProfile = async (req, res) => {
 
 exports.getMessPlanActivityLogs = async (req, res) => {
   try {
-    const { messId } = req.params;
+    const { messId } = req.params
     const page = parseInt(req.query.page) || 1
     const limit = parseInt(req.query.limit) || 10
 
     if (!isUUID(messId, 4)) {
-      return res.status(400).json({ success: false, message: 'Invalid messId' });
+      return res.status(400).json({ success: false, message: 'Invalid messId' })
     }
 
     const ownerId= req.user.id
@@ -372,6 +372,7 @@ exports.getMessPlanActivityLogs = async (req, res) => {
       limit
     })
 
+    console.log('Activity logs fetched successfully')
     return res.status(200).json({
       success: true,
       message: 'Activity logs fetched successfully',
