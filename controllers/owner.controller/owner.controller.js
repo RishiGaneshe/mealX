@@ -21,7 +21,7 @@ exports.createMessProfile = async (req, res) => {
         return res.status(400).json({ success: false, message: error.details[0].message })
       }
   
-      const {
+      let {
         messName, messType, email, contactNumber, alternateContact, address,
         city, state, pincode, fssaiLicenseNumber, activationDocType,openTime, closeTime, daysOpen
       } = value
@@ -60,7 +60,11 @@ exports.createMessProfile = async (req, res) => {
           console.error('mess verification file failed', err)
           return res.status(500).json({ success: false, message: 'Internal Server Error' })
       }
-      
+
+      city = city.toLowerCase()
+      state = state.toLowerCase()
+      address = address.toLowerCase()
+
       const mess = await MessProfile.create({
         messOwnerId: req.user.id,
         ownerName: owner.ownerName,

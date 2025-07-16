@@ -212,6 +212,9 @@ exports.handleVerifyPayment = async (req, res) => {
           { where: { userId: customerId }, transaction: t }
         )
       }
+
+      plan.usageCount += 1
+      await plan.save( {transaction : t })
   
       await t.commit()
       console.log('Payment verified and tokens issued successfully.')
