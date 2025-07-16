@@ -216,7 +216,7 @@ exports.postVerifyTokenSubmission = async (req, res) => {
     const expiry = new Date(plan.expiryDate)
 
     if (expiry < today || plan.status !== 'active') {
-      await t.rollback();
+      await t.rollback()
       return res.status(400).json({ success: false, message: 'Customer plan has expired or is not active.' })
     }
 

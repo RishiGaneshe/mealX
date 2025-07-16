@@ -230,7 +230,6 @@ exports.getSubscribedMessPlans = async (req, res) => {
 
 exports.postSubscribeToMess = async (req, res) => {
   const { messId } = req.body
-  
   if (!messId || !isUUID(messId)) {
     return res.status(400).json({ success: false, message: 'Invalid or missing messId.' })
   }
@@ -240,7 +239,6 @@ exports.postSubscribeToMess = async (req, res) => {
   }
 
   const userId = req.user.id
-
   try {
     const mess = await MessProfile.findOne({ where: { messId, isActive: true, status: 'active' } })
     if (!mess) {
@@ -251,7 +249,6 @@ exports.postSubscribeToMess = async (req, res) => {
     if (!customer) {
       return res.status(404).json({ success: false, message: 'Customer profile not found.' })
     }
-
     if (customer.mess_ids.includes(messId)) {
       return res.status(409).json({ success: false, message: 'Already subscribed to this mess.' })
     }
