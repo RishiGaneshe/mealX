@@ -369,7 +369,7 @@ exports.postVerifyAddCustomerToMess = async (req, res) => {
           return res.status(409).json({ success: false, message: 'Mess already added to customer profile.' })
        }
 
-    customer.mess_ids.push(messId)
+    customer.mess_ids = [...(customer.mess_ids || []), messId]
     await customer.save({ transaction: t })
 
     await t.commit()
