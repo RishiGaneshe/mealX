@@ -373,6 +373,8 @@ exports.postVerifyAddCustomerToMess = async (req, res) => {
     await customer.save({ transaction: t })
 
     await t.commit()
+    
+    console.log('Customer successfully added to mess.')
     return res.status(200).json({ success: true, message: 'Customer successfully added to mess.', messId, identifier })
 
   } catch (error) {
