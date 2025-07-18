@@ -15,6 +15,7 @@ router.get('/mess/subscribed/plans', CUSTOMER.getSubscribedMessPlans)
 
 
 
+router.post('/mess/transaction', CUSTOMER.postCustomerActivity)
 
 router.post('/mess/add', CUSTOMER.postSubscribeToMess)
 
