@@ -292,7 +292,7 @@ exports.handlePostGoogleAuth = async (req, res) => {
     try {
       const ticket = await client.verifyIdToken({
         idToken,
-        audience: '886086124566-c780dbmdcbjg5nq4v1ju5arpvgfldb0o.apps.googleusercontent.com' || process.env.GOOGLE_CLIENT_ID
+        audience: process.env.GOOGLE_CLIENT_ID
       })
       payload = ticket.getPayload()
     } catch (err) {

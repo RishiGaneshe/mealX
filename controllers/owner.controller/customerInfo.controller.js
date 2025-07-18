@@ -177,6 +177,7 @@ exports.getActivePlanForCustomerByCustomerPlanId = async (req, res) => {
             }
         })
     
+        console.log('Active plan fetched successfully by Owner.')
         return res.status(200).json({ success: true, message: activePlans ? 'Active plan fetched successfully.' : 'No active plans found.', data: activePlans })
 
     } catch (err) {

@@ -111,7 +111,14 @@ exports.handleVerifyPaymentByOwner = async (req, res) => {
         return res.status(400).json({ success: false, message: 'customerId is required and should be valid.' })
       }
 
-      const payment = await RazorpayInstance.payments.fetch(razorpay_payment_id)
+      let payment
+      try {
+        payment = await RazorpayInstance.payments.fetch(razorpay_payment_id)
+      } catch (error) {
+        console.error('Error fetching Razorpay payment:', error);
+        return res.status(502).json({ success: false, message: 'Failed to fetch payment details from Razorpay.', error: error?.message || 'Unknown error'})
+      }
+
       if (payment.status !== 'captured') {
         return res.status(400).json({ success: false, message: 'Payment not captured.' })
       }
@@ -331,7 +338,13 @@ exports.handleVerifyPaymentByCustomer = async (req, res) => {
         return res.status(400).json({ success: false, message: 'customerId is required and should be valid.' })
       }
 
-      const payment = await RazorpayInstance.payments.fetch(razorpay_payment_id)
+      let payment
+      try {
+        payment = await RazorpayInstance.payments.fetch(razorpay_payment_id)
+      } catch (error) {
+        console.error('Error fetching Razorpay payment:', error);
+        return res.status(502).json({ success: false, message: 'Failed to fetch payment details from Razorpay.', error: error?.message || 'Unknown error' })
+      }
       if (payment.status !== 'captured') {
         return res.status(400).json({ success: false, message: 'Payment not captured.' })
       }

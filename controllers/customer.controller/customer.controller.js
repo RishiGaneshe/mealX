@@ -4,7 +4,8 @@ const CustomerProfile= require('../../models/customers.schema')
 const MessPlan= require('../../models/messPlans.schema')
 const SubmittedToken = require('../../models/usedTokens.schema')
 const Transaction = require('../../models/transaction.schema')
-
+const CustomerPlan= require('../../models/customerPlans.schema')
+const { Op } = require('sequelize')
 
 
 exports.getMessesByCity = async (req, res) => {
@@ -227,6 +228,102 @@ exports.getSubscribedMessPlans = async (req, res) => {
       console.error('Error fetching mess plans:', err)
       return res.status(500).json({ success: false, message: 'Internal server error.' })
     }
+}
+
+
+exports.getAllIssuedPlansOfCustomerForAmess = async (req, res) => {
+  const customerId= req.user.id 
+  const { messId }= req.params
+
+  if (!messId || !isUUID(messId, 4)) {
+          return res.status(400).json({ success: false, message: 'messId is required and should be valid.' })
+  }
+
+  if (!customerId || !isUUID(customerId, 4)) {
+    return res.status(400).json({ success: false, message: 'Invalid or missing customer ID.'})
+  }
+
+  try {
+      const customer = await CustomerProfile.findOne({
+        where: { userId: customerId, isActive: true },
+      })
+
+      if (!customer) {
+        return res.status(404).json({ success: false, message: 'Customer profile not found.' })
+      }
+
+      if (!Array.isArray(customer.mess_ids) || !customer.mess_ids.includes(messId)) {
+        return res.status(403).json({ success: false, message: 'Access denied: You are not subscribed to this mess.' })
+      }
+
+      const activePlans = await CustomerPlan.findAll({
+          where: {
+              customerId,
+              messId,
+              expiryDate: {
+                  [Op.gte]: new Date(), 
+              },
+          },
+          order: [['expiryDate', 'ASC']],
+          attributes: [ 'customerPlanId', 'planId', 'messId', 'name', 'price', 'durationDays', 'imageUrl', 'purchaseDate', 'expiryDate','status' ]
+      })
+  
+      return res.status(200).json({
+          success: true, message: activePlans.length ? 'Active plans fetched successfully.':'No active plans found.', data: activePlans,
+      })
+
+  } catch (err) {
+    console.error('Error fetching active customer plans:', err)
+    return res.status(500).json({ success: false, message: 'Internal server error.'})
+  }
+}
+
+
+exports.getIssuedPlanDetailsByCustomerPlanId = async (req, res) => {
+  const customerId = req.user.id
+  const { messId }= req.params
+  const { customerPlanId }= req.params
+
+  if (!messId || !isUUID(messId, 4)) {
+          return res.status(400).json({ success: false, message: 'messId is required and should be valid.' })
+  }
+
+  if (!customerPlanId || !isUUID(customerPlanId, 4)) {
+      return res.status(400).json({ success: false, message: 'customerPlanId is required and should be valid.' })
+  }
+
+  if (!customerId) {
+    return res.status(400).json({ success: false, message: 'Invalid or missing customer ID.'})
+  }
+
+  try {
+      const customer = await CustomerProfile.findOne({
+        where: { userId: customerId, isActive: true },
+      })
+
+      if (!customer) {
+        return res.status(404).json({ success: false, message: 'Customer profile not found.' })
+      }
+
+      if (!Array.isArray(customer.mess_ids) || !customer.mess_ids.includes(messId)) {
+        return res.status(403).json({ success: false, message: 'Access denied: You are not subscribed to this mess.' })
+      }
+
+      const activePlans = await CustomerPlan.findOne({
+          where: {
+              customerPlanId,
+              customerId,
+              messId,
+          }
+      })
+   
+      console.log('Active plan fetched successfully by Customer')
+      return res.status(200).json({ success: true, message: activePlans ? 'Active plan fetched successfully.' : 'No active plans found.', data: activePlans })
+
+  } catch (err) {
+    console.error('Error fetching active customer plans:', err)
+    return res.status(500).json({ success: false, message: 'Internal server error.'})
+  }
 }
 
 
