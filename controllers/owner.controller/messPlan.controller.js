@@ -285,8 +285,6 @@ exports.deleteMessPlan = async (req, res) => {
 
     const previousData = plan.toJSON()
 
-    await plan.destroy({ transaction })
-
     await MessPlanActivityLog.create({
       planId: plan.planId,
       messId: plan.messId,
@@ -295,6 +293,8 @@ exports.deleteMessPlan = async (req, res) => {
       previousData,
       newData: null
     }, { transaction })
+
+    await plan.destroy({ transaction })
 
     await transaction.commit()
 

@@ -131,6 +131,7 @@ exports.updateMessPlanSchema = Joi.object({
   durationDays: Joi.number().integer().min(1).max(365),
   imageUrl: Joi.string().uri(),
   price: Joi.number().positive(),
+  totalTokens: Joi.number().integer().min(1).required(),
 })
 
 
