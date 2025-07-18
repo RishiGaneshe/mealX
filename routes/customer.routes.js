@@ -3,11 +3,11 @@ const router= express.Router()
 const CUSTOMER= require('../controllers/customer.controller/customer.controller')
 const RAZORPAY= require('../controllers/razorpay.controller/razorpay.controller')
 
-router.get('/messes', CUSTOMER.getAllMesses )
+router.get('/mess', CUSTOMER.getAllMesses )
 
-router.get('/messes/city', CUSTOMER.getMessesByCity)
+router.get('/mess/city', CUSTOMER.getMessesByCity)
 
-router.get('/messes/pincode', CUSTOMER.getMessesByPincode)
+router.get('/mess/pincode', CUSTOMER.getMessesByPincode)
 
 router.get('/mess/subscribed', CUSTOMER.getSubscribedMesses)
 

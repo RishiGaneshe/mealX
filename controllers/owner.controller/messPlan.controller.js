@@ -5,6 +5,7 @@ const { uploadFileToS3 }= require('../../services/s3FileUpload_services')
 const { validateMessPlan, updateMessPlanSchema }= require('../../validators/owner.validation')
 const MessPlanActivityLog = require('../../models/plansRecord.schema')
 const CustomerPlan= require('../../models/customerPlans.schema')
+const { sequelize } = require('../../services/connection_services_')
 
 
 exports.createMessPlan = async (req, res) => {
