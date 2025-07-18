@@ -353,11 +353,11 @@ exports.getOwnerProfile = async (req, res) => {
 
 exports.getMessPlanActivityLogs = async (req, res) => {
   try {
-    const { messId } = req.params
+    const { messId } = req.body
     const page = parseInt(req.query.page) || 1
     const limit = parseInt(req.query.limit) || 10
 
-    if (!isUUID(messId, 4)) {
+    if (!messId || typeof messId !== 'string' || !isUUID(messId, 4)) {
       return res.status(400).json({ success: false, message: 'Invalid messId' })
     }
 
