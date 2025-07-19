@@ -288,6 +288,7 @@ exports.postVerifyTokenSubmission = async (req, res) => {
         submittedTokens: tokens,
         totalSubmittedPrice,
         submittedBy,
+        submittedByName: mess.ownerName,
         submittedAt: new Date()
       }, { transaction: t })
       

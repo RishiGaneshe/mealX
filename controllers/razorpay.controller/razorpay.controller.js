@@ -185,6 +185,7 @@ exports.handleVerifyPaymentByOwner = async (req, res) => {
         transactionId: razorpay_payment_id,
         status: 'active',
         purchasedBy: req.user.id,
+        purchasedByName: mess.ownerName,
         customerPaymentType: customerPaymentType
       }, { transaction: t })
   
@@ -223,6 +224,7 @@ exports.handleVerifyPaymentByOwner = async (req, res) => {
         status: 'captured',
         paymentMethod: 'razorpay',
         transactionBy: req.user.id,
+        transactionByName: mess.ownerName,
         razorpaySignature: razorpay_signature
       }, { transaction: t })
 
@@ -405,6 +407,7 @@ exports.handleVerifyPaymentByCustomer = async (req, res) => {
         transactionId: razorpay_payment_id,
         status: 'active',
         purchasedBy: req.user.id,
+        purchasedByName: customer.customerName,
         customerPaymentType: 'online'
       }, { transaction: t })
   
@@ -443,6 +446,7 @@ exports.handleVerifyPaymentByCustomer = async (req, res) => {
         status: 'captured',
         paymentMethod: 'razorpay',
         transactionBy: req.user.id,
+        transactionByName: customer.customerName,
         razorpaySignature: razorpay_signature
       }, { transaction: t })
 

@@ -73,6 +73,7 @@ exports.createMessPlan = async (req, res) => {
         await MessPlanActivityLog.create({
           planId: newPlan.planId,
           messId: newPlan.messId,
+          planName: newPlan.name,
           action: 'created',
           performedBy: userId,
           newData: {
@@ -167,6 +168,7 @@ exports.activateMessPlan = async (req, res) => {
         await MessPlanActivityLog.create({
           planId: plan.planId,
           messId: plan.messId,
+          planName: plan.name,
           action: 'activated',
           performedBy: userId,
           previousData,
@@ -227,6 +229,7 @@ exports.deactivateMessPlan = async (req, res) => {
       await MessPlanActivityLog.create({
         planId: plan.planId,
         messId: plan.messId,
+        planName: plan.name,
         action: 'deactivated',
         performedBy: userId,
         previousData,
@@ -288,6 +291,7 @@ exports.deleteMessPlan = async (req, res) => {
     await MessPlanActivityLog.create({
       planId: plan.planId,
       messId: plan.messId,
+      planName: plan.name,
       action: 'deleted',
       performedBy: userId,
       previousData,
@@ -377,6 +381,7 @@ exports.updateMessPlan = async (req, res) => {
       await MessPlanActivityLog.create({
         planId: existingPlan.planId,
         messId: existingPlan.messId,
+        planName: existingPlan.name,
         action: 'updated',
         performedBy: userId,
         previousData,

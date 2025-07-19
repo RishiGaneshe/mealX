@@ -1,5 +1,6 @@
-const { DataTypes } = require('sequelize');
-const { sequelize } = require('../services/connection_services_');
+const { DataTypes } = require('sequelize')
+const { sequelize } = require('../services/connection_services_')
+
 
 
 const SubmittedToken = sequelize.define('SubmittedTokenGroup', {
@@ -67,6 +68,10 @@ const SubmittedToken = sequelize.define('SubmittedTokenGroup', {
     onDelete: 'CASCADE'
   },
 
+  submittedByName: {
+    type: DataTypes.STRING,
+  },
+  
   submittedAt: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW

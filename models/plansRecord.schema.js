@@ -24,6 +24,10 @@ const MessPlanActivityLog = sequelize.define('MessPlanActivityLog', {
     onDelete: 'CASCADE'
   },
 
+  planName: {
+    type: DataTypes.STRING,
+  },
+
   action: {
     type: DataTypes.ENUM('created', 'updated', 'deleted', 'activated', 'deactivated'),
     allowNull: false

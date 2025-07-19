@@ -81,6 +81,10 @@ const CustomerPlan = sequelize.define('CustomerPlan', {
     onDelete: 'CASCADE'
   },
 
+  purchasedByName: {
+    type: DataTypes.STRING,
+  },
+
   customerPaymentType:{
     type: DataTypes.ENUM('cash', 'online'),
     allowNull: false

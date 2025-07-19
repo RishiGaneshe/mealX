@@ -72,6 +72,10 @@ const Transaction = sequelize.define('Transaction', {
     type: DataTypes.UUID,
     allowNull: false,
     references: { model: 'users', key: 'id' }
+  },
+
+  transactionByName: {
+    type: DataTypes.STRING,
   }
   
 }, {
