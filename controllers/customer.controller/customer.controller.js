@@ -188,7 +188,7 @@ exports.getSubscribedMesses = async (req, res) => {
 }
 
 
-exports.getSubscribedMessPlans = async (req, res) => {
+exports.getMessPlansOfAMess = async (req, res) => {
     try {
       const { messId } = req.body
       const userId = req.user?.id
@@ -208,10 +208,6 @@ exports.getSubscribedMessPlans = async (req, res) => {
         return res.status(404).json({ success: false, message: 'Customer profile not found.' })
       }
 
-      if (!Array.isArray(customer.mess_ids) || !customer.mess_ids.includes(messId)) {
-        return res.status(403).json({ success: false, message: 'Access denied: You are not subscribed to this mess.' })
-      }
-  
       const plans = await MessPlan.findAll({
         where: { messId: messId, status: 'active' },
         order: [['createdAt', 'DESC']],
@@ -327,7 +323,7 @@ exports.getIssuedPlanDetailsByCustomerPlanId = async (req, res) => {
 }
 
 
-exports.postCustomerActivity = async (req, res) => {
+exports.postCustomerTransactionData = async (req, res) => {
   const { messId } = req.body
   const customerId = req.user.id
   const limit = parseInt(req.query.limit) || 10

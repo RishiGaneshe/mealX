@@ -5,30 +5,30 @@ const RAZORPAY= require('../controllers/razorpay.controller/razorpay.controller'
 
 
 
-router.get('/mess', CUSTOMER.getAllMesses )
+router.get('/mess', CUSTOMER.getAllMesses )  // done
 
-router.get('/mess/city', CUSTOMER.getMessesByCity)
+router.get('/mess/city', CUSTOMER.getMessesByCity)  // done
 
-router.get('/mess/pincode', CUSTOMER.getMessesByPincode)
+router.get('/mess/pincode', CUSTOMER.getMessesByPincode)  // done
 
-router.get('/mess/subscribed', CUSTOMER.getSubscribedMesses)
+router.get('/mess/plans', CUSTOMER.getMessPlansOfAMess)  // done
 
-router.get('/mess/subscribed/plans', CUSTOMER.getSubscribedMessPlans)
+router.get('/mess/subscribed', CUSTOMER.getSubscribedMesses)  // done
 
-router.get('/mess/:messId/plan/issued', CUSTOMER.getAllIssuedPlansOfCustomerForAmess)
+router.get('/mess/:messId/plan/issued', CUSTOMER.getAllIssuedPlansOfCustomerForAmess)  // done
 
-router.get('/mess/:messId/plan/:customerPlanId', CUSTOMER.getIssuedPlanDetailsByCustomerPlanId)
-
-
+router.get('/mess/:messId/plan/:customerPlanId', CUSTOMER.getIssuedPlanDetailsByCustomerPlanId)  // gone
 
 
-router.post('/mess/add', CUSTOMER.postSubscribeToMess)
 
-router.post('/mess/razorpay-order', RAZORPAY.handleCreateOrderByCustomer )
 
-router.post('/mess/payment-verify', RAZORPAY.handleVerifyPaymentByCustomer)
+router.post('/mess/add', CUSTOMER.postSubscribeToMess)    // Done
 
-router.post('/mess/transaction', CUSTOMER.postCustomerActivity)
+router.post('/mess/razorpay-order', RAZORPAY.handleCreateOrderByCustomer ) // Done
+
+router.post('/mess/payment-verify', RAZORPAY.handleVerifyPaymentByCustomer)  // Done
+
+router.post('/mess/transaction', CUSTOMER.postCustomerTransactionData)  // Done
 
 
 
