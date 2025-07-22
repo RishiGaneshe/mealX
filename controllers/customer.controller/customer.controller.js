@@ -190,7 +190,7 @@ exports.getSubscribedMesses = async (req, res) => {
 
 exports.getMessPlansOfAMess = async (req, res) => {
     try {
-      const { messId } = req.body
+      const { messId } = req.params
       const userId = req.user?.id
 
       if (!userId) {

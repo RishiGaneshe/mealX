@@ -11,7 +11,7 @@ router.get('/mess/city', CUSTOMER.getMessesByCity)  // done
 
 router.get('/mess/pincode', CUSTOMER.getMessesByPincode)  // done
 
-router.get('/mess/plans', CUSTOMER.getMessPlansOfAMess)  // done
+router.get('/mess/plans/:messId', CUSTOMER.getMessPlansOfAMess)  // done
 
 router.get('/mess/subscribed', CUSTOMER.getSubscribedMesses)  // done
 
