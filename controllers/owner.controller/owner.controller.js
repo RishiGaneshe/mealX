@@ -190,7 +190,7 @@ exports.handleGetAllMess= async(req, res)=>{
       }
 
       const messes = await MessProfile.findAll({
-          where: { messOwnerId: ownerId },
+          where: { messOwnerId: ownerId, isEmailVerified: true },
           order: [['createdAt', 'DESC']],
           attributes: ['messId', 'messName', 'ownerName', 'status', 'messType', 'address', 'city', 'logoUrl']
       })
@@ -228,7 +228,7 @@ exports.handleGetMessById = async (req, res) => {
       }
 
       const ownerId= req.user.id
-      const mess = await MessProfile.findOne({ where: { messId, messOwnerId: ownerId } })
+      const mess = await MessProfile.findOne({ where: { messId, messOwnerId: ownerId, isEmailVerified: true } })
       if (!mess) {
         return res.status(404).json({ success: false, message: 'Mess not found with the provided ID.'})
       }

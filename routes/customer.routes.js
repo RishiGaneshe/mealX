@@ -33,3 +33,12 @@ router.post('/mess/transaction', CUSTOMER.postCustomerTransactionData)  // Done
 
 
 module.exports= router
+
+
+// [
+//     "59e36466-63cb-430b-8828-8f62634f4b70",
+//     "d27370d7-f257-4a86-9802-2a32d5cdf8b2",
+//     "8262ca6f-bde1-423d-b914-c26e884daf26",
+//     "f3b66ac1-35b1-4fa1-9e25-32026084b4f5",
+//     "99bbe058-9c07-4742-af29-77bda743b63c",
+// ]

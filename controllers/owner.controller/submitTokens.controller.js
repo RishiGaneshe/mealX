@@ -11,11 +11,11 @@ const { sendSignUpOTP } = require('../../services/email_services_')
 const { sequelize } = require('../../services/connection_services_')
 const SubmittedTokenGroup= require('../../models/usedTokens.schema')
 const { saveOtpInDatabase, readOtpFromDatabase } = require('../../database/otp_services_')
-
+const { db_Create_Order }= require('../../database/create_Order_')
 
 
 exports.postInitiateTokenSubmission = async (req, res) => {
-  const { customerPlanId, tokens, customerId } = req.body
+  const { customerPlanId, tokens, customerId, orderType, deliveryAddress } = req.body
   const submittedBy = req.user.id
 
   if (!customerPlanId || !tokens?.length || !submittedBy || !customerId) {
@@ -28,6 +28,16 @@ exports.postInitiateTokenSubmission = async (req, res) => {
 
   if (!isUUID(customerPlanId) || !isUUID(customerId)) {
     return res.status(400).json({ success: false, message: 'Invalid UUID format for customerPlanId or customerId' })
+  }
+
+  if (!['dine', 'take-away', 'delivery'].includes(orderType)) {
+    return res.status(400).json({ success: false, message: 'Invalid orderType. Must be either "dine" or "take-away" or "delivery".'})
+  }
+  
+  if (orderType === 'delivery') {
+    if (!deliveryAddress || typeof deliveryAddress !== 'string' || deliveryAddress.trim().length === 0) {
+      return res.status(400).json({ success: false, message: 'Address is required for delivery orders.'})
+    }
   }
 
   for (const tokenId of tokens) {
@@ -146,11 +156,22 @@ exports.postInitiateTokenSubmission = async (req, res) => {
 
 
 exports.postVerifyTokenSubmission = async (req, res) => {
-  const { otp, verificationToken, requestId, context, identifierType } = req.body
+  let { otp, verificationToken, requestId, context, identifierType, orderType, deliveryAddress } = req.body
   const submittedBy = req.user.id
 
-  if (!otp || !verificationToken || !requestId || !context || !identifierType) {
-    return res.status(400).json({ success: false, message: 'All fields (otp, verificationToken, requestId, context, identifierType) are required.' })
+  if (!otp || !verificationToken || !requestId || !context || !identifierType || !orderType) {
+    return res.status(400).json({ success: false, message: 'All fields (otp, verificationToken, requestId, context, identifierType, orderType) are required.' })
+  }
+
+  if (!['dine', 'take-away', 'delivery'].includes(orderType)) {
+    return res.status(400).json({ success: false, message: 'Invalid orderType. Must be either "dine" or "take-away" or "delivery".'})
+  }
+  
+  if (orderType === 'delivery') {
+    if (!deliveryAddress || typeof deliveryAddress !== 'string' || deliveryAddress.trim().length === 0) {
+      return res.status(400).json({ success: false, message: 'Address is required for delivery orders.'})
+    }
+    deliveryAddress = deliveryAddress.trim().toLowerCase()
   }
 
   let payload
@@ -291,15 +312,22 @@ exports.postVerifyTokenSubmission = async (req, res) => {
         submittedByName: mess.ownerName,
         submittedAt: new Date()
       }, { transaction: t })
-      
+
+      const orderStatus= 'accepted'
+      const orderData= { orderType, deliveryAddress }
+      await db_Create_Order(customer, plan, mess, dbTokens, orderData, orderStatus, t)
+
       await t.commit()
       
     console.log('Token submission completed for customer:', customerId)
     return res.status(200).json({ success: true, message: 'Token submission verified and saved successfully.'})
 
   } catch (err) {
-    await t.rollback();
+    await t.rollback()
     console.error('Error in postVerifyTokenSubmission:', err)
+    if (err.message === 'invalid_order_type' || err.message === 'missing_address') {
+      return res.status(400).json({ success: false, message: err.message })
+    }
     return res.status(500).json({ success: false, message: 'Internal server error.' })
   }
 }
