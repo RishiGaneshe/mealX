@@ -8,6 +8,7 @@ const { sequelize } = require('../services/connection_services_')
 const { Op } = require('sequelize')
 const { db_Create_Order }= require('../database/create_Order_')
 const { redisClient }= require('../services/redis_services_')
+const { redisPutData }= require('../web-socket/auth.websocket')
 
 
 exports.Listen_WS_CustomerOrders = async (socket, io, connectedClients) => {
@@ -109,22 +110,27 @@ exports.Listen_WS_CustomerOrders = async (socket, io, connectedClients) => {
                     return socket.emit('order_response', { success: false, statusCode: 400, type: 'missing_address', message: 'Address is required for delivery orders.'})
                 }
 
+              
               const isConnected = connectedClients.has(ownerId)
-              if (isConnected) {
-                  io.to(ownerId).emit('incoming_order', { success: true, statusCode: 200, type: 'incoming_order', 
-                    data: order ,
-                    message: 'New token submission order received',
-                  })
-                  console.log('[Socket] New token submission order sent to owner.')
-              }else{
-                  const redisKey = `pending:orders:${ownerId}`
-                  await redisClient.rPush(redisKey, JSON.stringify({
-                      path: 'incoming_order',
-                      data: order,
-                  }))
-                  await redisClient.expire(redisKey, 86400) // 24h
-                  console.log(`[Socket] Owner: ${ownerId} is not connected. Queued order: ${order.orderId} in Redis`)
-              }
+              const path= 'incoming_order'
+              const message= `New token submission order received`
+              const redisKey= `pending:order_updates:${ownerId}`
+              await redisPutData(isConnected, ownerId, path, message, order, redisKey)
+            //   if (isConnected) {
+            //       io.to(ownerId).emit('incoming_order', { success: true, statusCode: 200, type: 'incoming_order', 
+            //         data: order ,
+            //         message: 'New token submission order received',
+            //       })
+            //       console.log('[Socket] New token submission order sent to owner.')
+            //   }else{
+            //       const redisKey = `pending:orders:${ownerId}`
+            //       await redisClient.rPush(redisKey, JSON.stringify({
+            //           path: 'incoming_order',
+            //           data: order,
+            //       }))
+            //       await redisClient.expire(redisKey, 86400) // 24h
+            //       console.log(`[Socket] Owner: ${ownerId} is not connected. Queued order: ${order.orderId} in Redis`)
+            //   }
 
               await t.commit()
             

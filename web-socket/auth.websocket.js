@@ -89,6 +89,30 @@ exports.authenticateSocketUser = async (socket, expectedRole ) => {
 }
 
 
+exports.redisPutData=  async( isConnected, userId, path, message, data, redisKey)=>{
+  try{
+      if (isConnected) {
+          io.to(userId).emit(path, { success: true, statusCode: 200, type: path, 
+            message: message,
+            data: data
+          })
+          console.log(message)
+
+      } else {
+          const payload= { message, path, data }
+          await redisClient.rPush(redisKey, JSON.stringify(payload))
+          await redisClient.expire(redisKey, 86400)
+          console.log(`[Socket] User ${userId} offline. Data stored queued in redis.`)
+      }
+  }catch(err){
+    console.error('[Socket] Error in Storing data in redis:', err.message)
+    throw err
+  }
+}
+
+// `pending:order_updates:${customerId}`
+
+
 exports.redisOrderDelivery= async( userId, io )=>{
   const redisKey = `pending:orders:${userId}`
      try {

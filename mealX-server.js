@@ -71,13 +71,13 @@ app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 
 
-app.get('/', (req, res) => {
-    res.status(200).sendFile(path.join(__dirname, 'test', 'ws.html'))
-})
+// app.get('/', (req, res) => {
+//     res.status(200).sendFile(path.join(__dirname, 'test', 'ws.html'))
+// })
 
-app.get('/ws2', (req, res) => {
-  res.status(200).sendFile(path.join(__dirname, 'test', 'wsO.html'))
-})
+// app.get('/ws2', (req, res) => {
+//   res.status(200).sendFile(path.join(__dirname, 'test', 'wsO.html'))
+// })
 
 app.use('/', USER)
 app.use('/user', tokenAuthentication, AUTHENTICATE)

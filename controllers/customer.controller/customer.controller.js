@@ -427,6 +427,7 @@ exports.postSubscribeToMess = async (req, res) => {
     customer.mess_ids.push(messId)
     await customer.save()
 
+    console.log('Successfully subscribed to mess.')
     return res.status(200).json({ success: true, message: 'Successfully subscribed to mess.', mess_ids: customer.mess_ids })
 
   } catch (err) {
