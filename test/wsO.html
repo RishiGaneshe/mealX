@@ -47,7 +47,7 @@
 
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" crossorigin="anonymous"></script>
   <script>
-    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNiYmUzYjdiLWM5OTYtNGMxNy05ODJkLWQ2MWExOGZmMzc2MSIsInVzZXJuYW1lIjoiZ29wYWwxMjMiLCJpZGVudGlmaWVyIjoiZ29wYWwxMjNAZ21haWwuY29tIiwiaWRlbnRpZmllclR5cGUiOiJlbWFpbCIsImF1dGhQcm92aWRlciI6ImxvY2FsIiwiaXNPd25lciI6dHJ1ZSwiaXNDdXN0b21lciI6ZmFsc2UsImlzQWRtaW4iOmZhbHNlLCJpc0d1ZXN0IjpmYWxzZSwiaWF0IjoxNzUzMzU0NzI1LCJleHAiOjE3NTMzNjU1MjV9.Hu3nY0h-azDAhyp5tIKCskUGBwBc3Blt50OVcR3y6-4'; // Replace with actual token
+    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNiYmUzYjdiLWM5OTYtNGMxNy05ODJkLWQ2MWExOGZmMzc2MSIsInVzZXJuYW1lIjoiZ29wYWwxMjMiLCJpZGVudGlmaWVyIjoiZ29wYWwxMjNAZ21haWwuY29tIiwiaWRlbnRpZmllclR5cGUiOiJlbWFpbCIsImF1dGhQcm92aWRlciI6ImxvY2FsIiwiaXNPd25lciI6dHJ1ZSwiaXNDdXN0b21lciI6ZmFsc2UsImlzQWRtaW4iOmZhbHNlLCJpc0d1ZXN0IjpmYWxzZSwiaWF0IjoxNzUzMzg3OTQ4LCJleHAiOjE3NTMzOTg3NDh9.nkjcZ2KHHzr3hsoyhq9QWJjTeWrXWms-bn0zM76AXcQ'; // Replace with actual token
     const socket = io('http://localhost:4000', { auth: { token } })
 
     socket.on('connect', () => {

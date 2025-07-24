@@ -28,7 +28,7 @@ exports.db_Create_Order= async (customer, plan, mess, dbTokens, payload, orderSt
         customerPlanName: plan.name,
         messName: mess.messName,
         deliveryAddress: payload.orderType === 'delivery' && typeof payload.deliveryAddress === 'string'
-                        ? payload.deliveryAddress.trim()
+                        ? payload.deliveryAddress.trim().toLowerCase()
                         : null,
         scheduledFor: payload.scheduledFor || null,
         tokenStatus: 'locked',

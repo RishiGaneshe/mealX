@@ -17,7 +17,7 @@ exports.Listen_WS_CustomerOrders = async (socket, io, connectedClients) => {
           if (!user) return
         
           const customerId= user.id
-          const { customerPlanId, tokens } = payload
+          const { customerPlanId, tokens, orderType, deliveryAddress } = payload
 
           if (!customerPlanId || !tokens?.length || !customerId) {
               return socket.emit('order_response', { success: false, statusCode: 400, type: 'validation_error', message: 'All fields are required.' })
@@ -32,6 +32,17 @@ exports.Listen_WS_CustomerOrders = async (socket, io, connectedClients) => {
               if (!isUUID(tokenId)) {
                   return socket.emit('order_response', { success: false, statusCode: 400, type: 'invalid_uuid', message: `Invalid UUID format for token ID: ${tokenId}` })
               }
+          }
+
+          const validOrderTypes = ['dine', 'take-away', 'delivery']
+          if (!orderType || !validOrderTypes.includes(orderType)) {
+                return socket.emit('order_response', { success: false, statusCode: 400, type: 'invalid_order_type', message: `Invalid order type. Must be from 'dine', 'take-away', 'delivery'.` })
+          }
+
+          if (orderType === 'delivery') {
+             if (!payload.deliveryAddress || typeof payload.deliveryAddress !== 'string' || payload.deliveryAddress.trim().length === 0) {
+                return socket.emit('order_response', { success: false, statusCode: 400, type: 'missing_address', message: `If orderType== 'delivery' then 'deliveryAddress' must be provided.` })
+             }
           }
   
           const uniqueTokens = new Set(tokens)
@@ -55,7 +66,7 @@ exports.Listen_WS_CustomerOrders = async (socket, io, connectedClients) => {
               })
               if (!plan) throw new Error('Customer plan not found')
 
-              if (plan.customerId !== user.id) throw new Error('Un-authorize. This plan does not belong to you.') 
+              if (plan.customerId !== user.id) throw new Error('Unauthorized. This plan does not belong to you.')
               
               if (new Date(plan.expiryDate) < today) throw new Error('Customer plan has expired.')
   

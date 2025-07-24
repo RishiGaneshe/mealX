@@ -15,8 +15,8 @@ exports.Listen_WS_OwnerOrderDecision= async(socket, io, connectedClients)=>{
           const user = await authenticateSocketUser(socket, 'owner')
           if (!user) return
           
-          const { customerId, orderId, submittedTokenIds, decision, customerName } = payload
-            if (!orderId || !customerId || !Array.isArray(submittedTokenIds) || submittedTokenIds.length === 0 || !customerName ) {
+          const { customerId, orderId, submittedTokenIds, decision, customerName, orderType, deliveryAddress } = payload
+            if (!orderId || !customerId || !Array.isArray(submittedTokenIds) || submittedTokenIds.length === 0 || !customerName || !orderType ) {
               return socket.emit('order_response', { success: false, statusCode: 400, type: 'invalid_payload', message: 'Required fields missing or invalid.'})
             }
       
@@ -139,9 +139,8 @@ exports.Listen_WS_OwnerOrderDecision= async(socket, io, connectedClients)=>{
           const path= 'order_update'
           const message= `Your order has been ${decision} by the owner.`
           const redisKey = `pending:order_updates:${customerId}`
-          const data= { submittedTokenIds, status: decision, payload }
-
-          await orderDataEmitter(isConnected, customerId, path, message, data, redisKey, io)
+          
+          await orderDataEmitter(isConnected, customerId, path, message, payload, redisKey, io)
 
           await transaction.commit()
           console.log('[Socket] Order Action Completed.')
@@ -160,4 +159,3 @@ exports.Listen_WS_OwnerOrderDecision= async(socket, io, connectedClients)=>{
     }
   })
 }
-  

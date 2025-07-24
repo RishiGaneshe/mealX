@@ -2,6 +2,7 @@ const express= require('express')
 const router= express.Router()
 const CUSTOMER= require('../controllers/customer.controller/customer.controller')
 const RAZORPAY= require('../controllers/razorpay.controller/razorpay.controller')
+const ORDER= require('../controllers/customer.controller/orders.controller')
 
 
 
@@ -17,8 +18,13 @@ router.get('/mess/subscribed', CUSTOMER.getSubscribedMesses)  // done
 
 router.get('/mess/:messId/plan/issued', CUSTOMER.getAllIssuedPlansOfCustomerForAmess)  // done
 
-router.get('/mess/:messId/plan/:customerPlanId', CUSTOMER.getIssuedPlanDetailsByCustomerPlanId)  // gone
+router.get('/mess/:messId/plan/:customerPlanId', CUSTOMER.getIssuedPlanDetailsByCustomerPlanId)  // done
 
+router.get('/mess/orders', ORDER.getTodayOrdersByCustomer)
+
+router.get('/mess/orders/past', ORDER.getOrdersForPastDays)
+
+router.get('/mess/orders/:messId', ORDER.getOrdersByMessId)
 
 
 
