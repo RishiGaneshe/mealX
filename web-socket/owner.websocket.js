@@ -5,7 +5,7 @@ const { sequelize } = require('../services/connection_services_')
 const SubmittedTokenGroup= require('../models/usedTokens.schema')
 const CustomerPlan = require('../models/customerPlans.schema')
 const MessProfile= require('../models/mess.schema')
-const { redisClient }= require('../services/redis_services_')
+const { orderDataEmitter }= require('../web-socket/auth.websocket')
 
 
 exports.Listen_WS_OwnerOrderDecision= async(socket, io, connectedClients)=>{
@@ -59,7 +59,6 @@ exports.Listen_WS_OwnerOrderDecision= async(socket, io, connectedClients)=>{
 
           if (decision === 'accepted') {
               const totalSubmittedPrice = tokens.reduce((sum, t) => sum + t.tokenPrice, 0)
-
               await Token.update(
                 { status: 'used', tokenUsageDate: new Date() },
                 {
@@ -111,7 +110,8 @@ exports.Listen_WS_OwnerOrderDecision= async(socket, io, connectedClients)=>{
               await Order.update({
                 orderStatus: 'accepted',
                 tokenStatus: 'accepted'
-              }, {
+              }, 
+              {
                 where: { orderId },
                 transaction
               })
@@ -135,29 +135,17 @@ exports.Listen_WS_OwnerOrderDecision= async(socket, io, connectedClients)=>{
           console.log('[Socket] Rejecting Order....')
           }
   
+          const isConnected = connectedClients.has(customerId)
+          const path= 'order_update'
+          const message= `Your order has been ${decision} by the owner.`
+          const redisKey = `pending:order_updates:${customerId}`
+          const data= { submittedTokenIds, status: decision, payload }
+
+          await orderDataEmitter(isConnected, customerId, path, message, data, redisKey, io)
+
           await transaction.commit()
           console.log('[Socket] Order Action Completed.')
-  
-          const isCustomerConnected = connectedClients.has(customerId)
-          if (isCustomerConnected) {
-              io.to(customerId).emit('order_update', { success: true, statusCode: 200, type: 'order_update', 
-                message: `Your order has been ${decision} by the owner.`,
-                data: { submittedTokenIds, status: decision, payload }
-              })
-              console.log(`[Socket] Sent order update to customer: ${customerId}`)
-
-          } else {
-              const redisKey = `pending:order_updates:${customerId}`
-              await redisClient.rPush(redisKey, JSON.stringify({
-                  submittedTokenIds, 
-                  status: decision,
-                  path: 'order_update',
-                  payload
-              }))
-              await redisClient.expire(redisKey, 86400)
-              console.log(`[Socket] Customer ${customerId} offline. Queued order update in Redis.`)
-          }
-
+          
           socket.emit('order_response', { success: true, statusCode: 200, type: 'order_processed', message: `Order ${decision} successfully.`,
             data: {
               submittedTokenIds,

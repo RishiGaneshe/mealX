@@ -432,8 +432,6 @@ exports.postSubscribeToMess = async (req, res) => {
       { where: { userId, isActive: true } }
     )
 
-    console.log(`[Subscription] User ${userId} subscribed to mess ${messId}`)
-
     console.log('Successfully subscribed to mess.')
     return res.status(200).json({ success: true, message: 'Successfully subscribed to mess.', mess_ids: customer.mess_ids })
 

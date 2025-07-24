@@ -1,4 +1,3 @@
-const jwt = require('jsonwebtoken')
 const { redisClient }= require('../services/redis_services_') 
 const { verifyToken } = require('../services/jwt_services_')
 const USER = require('../models/user.schema') 
@@ -89,28 +88,26 @@ exports.authenticateSocketUser = async (socket, expectedRole ) => {
 }
 
 
-exports.redisPutData=  async( isConnected, userId, path, message, data, redisKey)=>{
+exports.orderDataEmitter=  async( isConnected, userId, path, message, data, redisKey, io)=>{
   try{
       if (isConnected) {
           io.to(userId).emit(path, { success: true, statusCode: 200, type: path, 
             message: message,
             data: data
           })
-          console.log(message)
+          console.log(`[Socket] ${message}`)
 
       } else {
           const payload= { message, path, data }
           await redisClient.rPush(redisKey, JSON.stringify(payload))
           await redisClient.expire(redisKey, 86400)
-          console.log(`[Socket] User ${userId} offline. Data stored queued in redis.`)
+          console.log(`[Socket] User ${userId} offline. Data stored in redis.`)
       }
   }catch(err){
     console.error('[Socket] Error in Storing data in redis:', err.message)
     throw err
   }
 }
-
-// `pending:order_updates:${customerId}`
 
 
 exports.redisOrderDelivery= async( userId, io )=>{
@@ -120,8 +117,7 @@ exports.redisOrderDelivery= async( userId, io )=>{
 
         if (pendingOrders.length > 0) {
           for (const rawData of pendingOrders) {
-          const parsed = JSON.parse(rawData)
-
+            const parsed = JSON.parse(rawData)
             io.to(userId).emit(parsed.path, { success: true, statusCode: 200, type: parsed.type,
               message: 'You have a pending token submission order.',
               data: parsed.data
@@ -129,7 +125,7 @@ exports.redisOrderDelivery= async( userId, io )=>{
           }
 
           await redisClient.del(redisKey)
-          console.log(`[Socket] Delivered ${pendingOrders.length} pending orders to Owner: ${userId} and cleared Redis key.`)
+          console.log(`[Socket] Delivered ${pendingOrders.length} pending Orders to Owner: ${userId}.`)
         }
      } catch (err) {
         console.error(`[Socket] Failed to deliver pending orders for ${userId}:`, err.message)
@@ -152,7 +148,7 @@ exports.redisOrderResponse= async( userId, io )=>{
           }
 
           await redisClient.del(redisKey)
-          console.log(`[Socket] Delivered ${pendingOrders.length} pending order responses to Customer ${userId} and cleared Redis key.`)
+          console.log(`[Socket] Delivered ${pendingOrders.length} pending Responses to Customer ${userId}.`)
         }
      } catch (err) {
         console.error(`[Socket] Failed to deliver pending orders for ${userId}:`, err.message)

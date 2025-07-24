@@ -16,7 +16,7 @@ exports.handleCreateSocketConnectionForOwner = async (io) => {
         socket.join(userId)
         connectedClients.set(userId, socket)
 
-        console.log('[Socket] User Connected :', socket.id+ ' : ' + userId)
+        console.log(`[Socket] User Connected    :  ${socket.id} : ${socket.user.id}`)
 
         await redisOrderDelivery(userId, io)
         await redisOrderResponse(userId, io)
@@ -26,7 +26,7 @@ exports.handleCreateSocketConnectionForOwner = async (io) => {
 
         socket.on('disconnect', () => {
           connectedClients.delete(socket.user.id)
-          console.log('[Socket] User Disconnected :', socket.id+ ' : ' + socket.user.id)
+          console.log(`[Socket] User Disconnected :  ${socket.id} : ${socket.user.id}`)
         })
 
       })

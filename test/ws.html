@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Customer Order Client</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f6f8;
+      color: #333;
+      padding: 40px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(14, 9, 9, 0.08);
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #222;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #log {
+      margin-top: 30px;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      height: 300px;
+      overflow-y: auto;
+      background-color: #fdfdfd;
+      font-size: 14px;
+    }
+
+    .log-entry {
+      margin-bottom: 12px;
+      padding: 6px 10px;
+      border-left: 4px solid transparent;
+      background-color: #fafafa;
+      border-radius: 4px;
+      transition: background 0.3s ease;
+    }
+
+    .log-entry.success {
+      border-color: #4CAF50;
+      background-color: #eafbe7;
+      color: #2e7d32;
+    }
+
+    .log-entry.error {
+      border-color: #f44336;
+      background-color: #fdecea;
+      color: #c62828;
+    }
+
+    .log-entry.info {
+      border-color: #2196F3;
+      background-color: #e3f2fd;
+      color: #1565c0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Customer: Submit New Order</h1>
+    <button id="placeOrder">Place Order</button>
+
+    <div id="log"></div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" crossorigin="anonymous"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQyYWIyMzQzLTE1ZWEtNDc2Yi1hZTkwLTkxMTZmYTQ2OWVkYiIsInVzZXJuYW1lIjoiZ29wYWwiLCJpZGVudGlmaWVyIjoiZ29wYWxAZ21haWwuY29tIiwiaWRlbnRpZmllclR5cGUiOiJlbWFpbCIsImF1dGhQcm92aWRlciI6ImxvY2FsIiwiaXNPd25lciI6ZmFsc2UsImlzQ3VzdG9tZXIiOnRydWUsImlzQWRtaW4iOmZhbHNlLCJpc0d1ZXN0IjpmYWxzZSwiaWF0IjoxNzUzMzUyOTM5LCJleHAiOjE3NTMzNjM3Mzl9.R2eRLGhQBgWbnUe6IZOrHRSiwjHDtuwqMRiyYlA5qkI';
+
+      const socket = io('http://localhost:4000', {
+        auth: { token }
+      });
+
+      const logContainer = document.getElementById('log');
+
+      const log = (message, type = 'info') => {
+        const div = document.createElement('div')
+        div.className = `log-entry ${type}`
+        div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`
+        logContainer.appendChild(div)
+        logContainer.scrollTop = logContainer.scrollHeight
+      }
+
+      socket.on('connect', () => {
+        log('Connected to server', 'success')
+      })
+
+      socket.on('connect_error', (err) => {
+        console.error('[Socket Auth Error]', err.message)
+        alert(err.message)
+      })
+
+      socket.on('order_response', (res) => {
+        if (res?.success) {
+          console.log(res)
+          log(`Order placed successfully: ${res.message}`, 'success')
+        } else {
+          console.log(res)
+          log(`Order failed [${res?.type || 'error'}]: ${res?.message || 'Unknown error'}`, 'error')
+        }
+      })
+
+      socket.on('order_update', (res) => {
+        if (res?.success) {
+          console.log(res.data)
+          log(`Owner response to order: ${res.message}`, 'success')
+        } else {
+          log(`Owner response failed [${res?.type || 'error'}]: ${res?.message || 'Unknown error'}`, 'error')
+        }
+      })
+
+      document.getElementById('placeOrder').addEventListener('click', () => {
+        const orderPayload = {
+          customerPlanId: "d01fcccf-1fa4-4811-b48c-c2e7c4d0dc01",
+          tokens: [
+            "fdc482a4-5a22-44f7-a06b-ff21c832b5d7",
+          ],
+          customerId: "42ab2343-15ea-476b-ae90-9116fa469edb",
+          orderType: "dine"
+        };
+
+        socket.emit('new_order', orderPayload, (response) => {
+          if (response?.success) {
+            log(`Server ACK: ${response.message || 'Order successfully placed.'}`, 'success')
+          } else {
+            log(`Server rejected order [${response?.type || 'error'}]: ${response?.message || 'Unknown error'}`, 'error')
+          }
+        })
+      })
+    })
+  </script>
+</body>
+</html>
+<!-- eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNiYmUzYjdiLWM5OTYtNGMxNy05ODJkLWQ2MWExOGZmMzc2MSIsInVzZXJuYW1lIjoiZ29wYWwxMjMiLCJpZGVudGlmaWVyIjoiZ29wYWwxMjNAZ21haWwuY29tIiwiaWRlbnRpZmllclR5cGUiOiJlbWFpbCIsImF1dGhQcm92aWRlciI6ImxvY2FsIiwiaXNPd25lciI6dHJ1ZSwiaXNDdXN0b21lciI6ZmFsc2UsImlzQWRtaW4iOmZhbHNlLCJpc0d1ZXN0IjpmYWxzZSwiaWF0IjoxNzUzMjg1MjI2LCJleHAiOjE3NTMyOTYwMjZ9.VUOY3LJKA7MzCIPUB8lDN2hBmhJhMIcO1UJe4Z9T2uY -->

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Owner Panel - Order Handler</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    #orderInfo {
+      border: 1px solid #ccc;
+      padding: 16px;
+      margin-top: 20px;
+      display: none;
+    }
+    #orderActions {
+      margin-top: 10px;
+    }
+    button {
+      padding: 8px 12px;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+    pre {
+      background: #f5f5f5;
+      padding: 10px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Owner Panel - Order Handler</h1>
+
+  <div id="orderInfo">
+    <h3>New Order Received:</h3>
+    <pre id="orderDetails"></pre>
+    <div id="orderActions">
+      <button onclick="sendOwnerDecision('accepted')">Accept</button>
+      <button onclick="sendOwnerDecision('rejected')">Reject</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" crossorigin="anonymous"></script>
+  <script>
+    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNiYmUzYjdiLWM5OTYtNGMxNy05ODJkLWQ2MWExOGZmMzc2MSIsInVzZXJuYW1lIjoiZ29wYWwxMjMiLCJpZGVudGlmaWVyIjoiZ29wYWwxMjNAZ21haWwuY29tIiwiaWRlbnRpZmllclR5cGUiOiJlbWFpbCIsImF1dGhQcm92aWRlciI6ImxvY2FsIiwiaXNPd25lciI6dHJ1ZSwiaXNDdXN0b21lciI6ZmFsc2UsImlzQWRtaW4iOmZhbHNlLCJpc0d1ZXN0IjpmYWxzZSwiaWF0IjoxNzUzMzU0NzI1LCJleHAiOjE3NTMzNjU1MjV9.Hu3nY0h-azDAhyp5tIKCskUGBwBc3Blt50OVcR3y6-4'; // Replace with actual token
+    const socket = io('http://localhost:4000', { auth: { token } })
+
+    socket.on('connect', () => {
+      console.log('[Client] Connected to server')
+    })
+
+    socket.on('incoming_order', (res) => {
+      if (res?.success) {
+        console.log('[Client] Incoming order payload:', res.data)
+        localStorage.setItem('orderPayload', JSON.stringify(res.data))
+
+        const orderInfoDiv = document.getElementById('orderInfo')
+        const orderDetails = document.getElementById('orderDetails')
+
+        orderDetails.textContent = JSON.stringify(res.data, null, 2)
+        orderInfoDiv.style.display = 'block'
+      } else {
+        console.warn(`[Client] Failed to receive order [${res?.type || 'error'}]:`, res?.message || 'Unknown error')
+      }
+    })
+
+    function sendOwnerDecision(decision) {
+      const rawPayload = localStorage.getItem('orderPayload')
+      if (!rawPayload) {
+        alert('No order to process.')
+        return
+      }
+
+      let orderPayload
+      try {
+        orderPayload = JSON.parse(rawPayload)
+      } catch (err) {
+        console.error('Invalid orderPayload JSON:', err)
+        return;
+      }
+
+      const finalPayload = { ...orderPayload, decision }
+      socket.emit('owner_order_decision', finalPayload, (response) => {
+        if (response?.success) {
+          alert(`Order ${decision} successfully.`)
+          document.getElementById('orderInfo').style.display = 'none'
+          document.getElementById('orderDetails').textContent = ''
+          localStorage.removeItem('orderPayload')
+        } else {
+          alert(`Error processing order: ${response?.message || 'Unknown error'}`)
+        }
+      })
+    }
+
+    socket.on('order_response', (res) => {
+      if (res?.success) {
+        console.log('[Client] Server response after decision:', res.message)
+      } else {
+        console.warn('[Client] Server rejected decision:', res.message || 'Unknown error')
+      }
+    })
+  </script>
+
+</body>
+</html>
