@@ -420,12 +420,19 @@ exports.postSubscribeToMess = async (req, res) => {
     if (!customer) {
       return res.status(404).json({ success: false, message: 'Customer profile not found.' })
     }
-    if (customer.mess_ids.includes(messId)) {
-      return res.status(409).json({ success: false, message: 'Already subscribed to this mess.' })
+
+    const messIds = customer.mess_ids || []
+    if (messIds.includes(messId)) {
+      return res.status(409).json({ success: false, message: 'Already subscribed to this mess.'})
     }
 
-    customer.mess_ids.push(messId)
-    await customer.save()
+    messIds.push(messId)
+    await CustomerProfile.update(
+      { mess_ids: messIds },
+      { where: { userId, isActive: true } }
+    )
+
+    console.log(`[Subscription] User ${userId} subscribed to mess ${messId}`)
 
     console.log('Successfully subscribed to mess.')
     return res.status(200).json({ success: true, message: 'Successfully subscribed to mess.', mess_ids: customer.mess_ids })
