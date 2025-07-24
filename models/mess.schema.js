@@ -51,6 +51,10 @@ const MessProfile = sequelize.define('MessProfile', {
       openTime: { type: DataTypes.TIME },
       closeTime: { type: DataTypes.TIME },
       daysOpen: { type: DataTypes.ARRAY(DataTypes.STRING) }, // ['Monday', 'Saturday']
+      services: {
+        type: DataTypes.ARRAY(DataTypes.STRING),
+        allowNull: false,
+      }
 
   },{
     timestamps: true,

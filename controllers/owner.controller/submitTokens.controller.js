@@ -252,6 +252,11 @@ exports.postVerifyTokenSubmission = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Unauthorized: You do not own this mess.' })
     }
 
+    if (!Array.isArray(mess.services) || !mess.services.includes(orderType)) {
+      await t.rollback()
+      return res.status(400).json({ success: false, message: `Order type '${orderType}' is not supported by this mess.` })
+    }
+
     const dbTokens = await Token.findAll({
       where: {
         tokenId: { [Op.in]: tokens },

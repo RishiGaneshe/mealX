@@ -23,7 +23,7 @@ exports.createMessProfile = async (req, res) => {
   
       let {
         messName, messType, email, contactNumber, alternateContact, address,
-        city, state, pincode, fssaiLicenseNumber, activationDocType,openTime, closeTime, daysOpen
+        city, state, pincode, fssaiLicenseNumber, activationDocType,openTime, closeTime, daysOpen, services
       } = value
       
       t = await sequelize.transaction()
@@ -84,7 +84,8 @@ exports.createMessProfile = async (req, res) => {
         activationDocType,
         openTime,
         closeTime,
-        daysOpen
+        daysOpen,
+        services
       }, { transaction: t })
       
       const receiverType= 'email'

@@ -78,6 +78,10 @@ exports.Listen_WS_CustomerOrders = async (socket, io, connectedClients) => {
                   lock: t.LOCK.UPDATE
               })
               if (!mess) throw new Error('Something went wrong: Mess not found.')
+
+              if (!Array.isArray(mess.services) || !mess.services.includes(orderType)) {
+                throw new Error(`Order type '${orderType}' is not supported by this mess.`)
+              }
   
               const ownerId = mess.messOwnerId
   

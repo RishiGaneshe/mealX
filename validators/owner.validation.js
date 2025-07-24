@@ -43,7 +43,11 @@ exports.validateMessProfile = Joi.object({
         'Sunday'
       )
     )
-    .optional()
+    .optional(),
+
+    services: Joi.array()
+    .items(Joi.string().valid('dine', 'take-away', 'delivery'))
+    .optional(),
 })
 
 
