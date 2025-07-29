@@ -186,7 +186,9 @@ exports.handleVerifyPaymentByOwner = async (req, res) => {
         status: 'active',
         purchasedBy: req.user.id,
         purchasedByName: mess.ownerName,
-        customerPaymentType: customerPaymentType
+        customerPaymentType: customerPaymentType,
+        menu: plan.menu,
+        description: plan.description
       }, { transaction: t })
   
       const tokenEntries = []
@@ -408,7 +410,9 @@ exports.handleVerifyPaymentByCustomer = async (req, res) => {
         status: 'active',
         purchasedBy: req.user.id,
         purchasedByName: customer.customerName,
-        customerPaymentType: 'online'
+        customerPaymentType: 'online',
+        menu: plan.menu,
+        description: plan.description
       }, { transaction: t })
   
       const tokenEntries = []

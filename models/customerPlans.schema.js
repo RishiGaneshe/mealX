@@ -33,6 +33,8 @@ const CustomerPlan = sequelize.define('CustomerPlan', {
   price: { type: DataTypes.FLOAT, allowNull: false }, 
   durationDays: { type: DataTypes.INTEGER, allowNull: false },                     
   imageUrl: { type: DataTypes.STRING },
+  description: { type: DataTypes.TEXT },                   
+  menu: { type: DataTypes.ARRAY(DataTypes.STRING) },
 
   purchaseDate: {
     type: DataTypes.DATEONLY,

@@ -25,9 +25,7 @@ router.get('/mess/:messId/customer/:customerId/active-plans', CUSTOMERINFO.getAl
 
 router.get('/mess/:messId/customer/:customerId/active-plans/:customerPlanId', CUSTOMERINFO.getActivePlanForCustomerByCustomerPlanId) // done
 
-router.get('/mess/:messId/customer/:customerId/stats/issued-plans', CUSTOMERINFO.getAllIssuedPlansToCustomerByCustomerId)
 
-router.get('/mess/:messId/customer/:customerId/stats/transactions', CUSTOMERINFO.getTransactionsByCustomerForMess)
 
 
 

@@ -127,7 +127,7 @@ exports.getAllActivePlansByCustomerId = async (req, res) => {
                 },
             },
             order: [['expiryDate', 'ASC']],
-            attributes: [ 'customerPlanId', 'planId', 'messId', 'name', 'price', 'durationDays', 'imageUrl', 'purchaseDate', 'expiryDate','status', 'issuedTokenCount', 'usedTokenCount' ]
+            attributes: [ 'customerPlanId', 'planId', 'messId', 'name', 'price', 'durationDays', 'imageUrl', 'purchaseDate', 'expiryDate','status', 'issuedTokenCount', 'usedTokenCount', 'description', 'menu' ]
         })
     
         return res.status(200).json({
@@ -168,7 +168,7 @@ exports.getActivePlanForCustomerByCustomerPlanId = async (req, res) => {
             return res.status(403).json({ success: false, message: 'Access denied. This mess does not belong to the authenticated owner.'})
         }
 
-        const activePlans = await CustomerPlan.findOne({
+        const activePlan = await CustomerPlan.findOne({
             where: {
                 customerPlanId,
                 customerId,
@@ -178,113 +178,12 @@ exports.getActivePlanForCustomerByCustomerPlanId = async (req, res) => {
         })
     
         console.log('Active plan fetched successfully by Owner.')
-        return res.status(200).json({ success: true, message: activePlans ? 'Active plan fetched successfully.' : 'No active plans found.', data: activePlans })
+        return res.status(200).json({ success: true, message: activePlan ? 'Active plan fetched successfully.' : 'No active plans found.', data: activePlan })
 
     } catch (err) {
       console.error('Error fetching active customer plans:', err)
       return res.status(500).json({ success: false, message: 'Internal server error.'})
     }
-}
-
-
-exports.getAllIssuedPlansToCustomerByCustomerId = async (req, res) => {
-    const { customerId, messId } = req.params
-  
-    if (!messId || !isUUID(messId, 4)) {
-      return res.status(400).json({ success: false, message: 'messId is required and should be a valid UUIDv4.' });
-    }
-  
-    if (!customerId || !isUUID(customerId, 4)) {
-      return res.status(400).json({ success: false, message: 'customerId is required and should be a valid UUIDv4.' });
-    }
-  
-    try {
-      const ownerId = req.user.id
-      const mess = await MessProfile.findOne({
-        where: { messId, messOwnerId: ownerId }
-      })
-  
-      if (!mess) {
-        return res.status(403).json({ success: false, message: 'Access denied. This mess does not belong to the authenticated owner.' });
-      }
-  
-      const page = Number.isInteger(+req.query.page) && +req.query.page > 0 ? +req.query.page : 1
-      const limit = Number.isInteger(+req.query.limit) && +req.query.limit > 0 ? +req.query.limit : 20
-      const offset = (page - 1) * limit
-  
-      const result = await CustomerPlan.findAndCountAll({
-        where: {
-          customerId,
-          messId
-        },
-        order: [['createdAt', 'DESC']],
-        offset,
-        limit,
-        attributes: [
-          'customerPlanId', 'planId', 'messId', 'name', 'price', 'durationDays',
-           'purchaseDate', 'expiryDate', 'purchasedBy', 'status'
-        ]
-      })
-  
-      return res.status(200).json({
-        success: true,
-        message: result.count ? 'Issued plans fetched successfully.' : 'No issued plans found.',
-        totalRecords: result.count,
-        currentPage: page,
-        totalPages: Math.ceil(result.count / limit),
-        data: result.rows
-      })
-  
-    } catch (err) {
-      console.error('Error fetching customer plans:', err);
-      return res.status(500).json({ success: false, message: 'Internal server error.' })
-    }
-}
-
-
-exports.getTransactionsByCustomerForMess = async (req, res) => {
-    try {
-      const { customerId, messId } = req.params
-  
-      if (!isUUID(customerId, 4) || !isUUID(messId, 4)) {
-        return res.status(400).json({ success: false, message: 'Invalid or missing customerId or messId. Both must be valid UUIDv4.'})
-      }
-  
-      const page = Number.isInteger(+req.query.page) && +req.query.page > 0 ? +req.query.page : 1
-      const rawLimit = Number.isInteger(+req.query.limit) && +req.query.limit > 0 ? +req.query.limit : 20
-      const limit = Math.min(rawLimit, 100)
-      const offset = (page - 1) * limit
-
-      const ownerId = req.user.id
-      const mess = await MessProfile.findOne({
-        where: { messId, messOwnerId: ownerId }
-      })
-  
-      if (!mess) {
-        return res.status(403).json({ success: false, message: 'Access denied. This mess does not belong to the authenticated owner.' })
-      }
-  
-      const transactions = await Transaction.findAndCountAll({
-        where: { customerId, messId },
-        order: [['createdAt', 'DESC']],
-        offset,
-        limit,
-        attributes: { exclude: ['updatedAt'] }
-      })
-  
-      return res.status(200).json({
-        success: true,
-        message: 'Transaction data sent successfully.',
-        totalRecords: transactions.count,
-        currentPage: page,
-        totalPages: Math.ceil(transactions.count / limit),
-        data: transactions.rows
-      })
-  
-    } catch (error) {
-      console.error('Error fetching transactions:', error.stack || error)
-      return res.status(500).json({ success: false, message: 'Internal server error'})
-   }
 }
 
 
