@@ -1,11 +1,14 @@
-const MessProfile = require('../../models/mess.schema')
-const { isUUID } = require('validator')
-const CustomerProfile= require('../../models/customers.schema')
-const MessPlan= require('../../models/messPlans.schema')
-const SubmittedToken = require('../../models/usedTokens.schema')
-const Transaction = require('../../models/transaction.schema')
-const CustomerPlan= require('../../models/customerPlans.schema')
 const { Op } = require('sequelize')
+const { isUUID } = require('validator')
+const MessProfile = require('../../models/mess.schema')
+const MessPlan= require('../../models/messPlans.schema')
+const Transaction = require('../../models/transaction.schema')
+const CustomerProfile= require('../../models/customers.schema')
+const SubmittedToken = require('../../models/usedTokens.schema')
+const CustomerPlan= require('../../models/customerPlans.schema')
+const { sequelize } = require('../../services/connection_services_')
+const { uploadFileToS3 }= require('../../services/s3FileUpload_services')
+
 
 
 exports.getMessesByCity = async (req, res) => {
@@ -310,6 +313,7 @@ exports.getIssuedPlanDetailsByCustomerPlanId = async (req, res) => {
               customerPlanId,
               customerId,
               messId,
+              status: 'active'
           }
       })
    
@@ -438,5 +442,48 @@ exports.postSubscribeToMess = async (req, res) => {
   } catch (err) {
     console.error('Error subscribing to mess:', err)
     return res.status(500).json({ success: false, message: 'Internal Server Error' })
+  }
+}
+
+
+exports.postUpdateCustomerProfileImage = async (req, res) => {
+  let t
+  try {
+    const userId = req.user?.id
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Unauthorized. User ID missing from token.' })
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Image file is required.' })
+    }
+
+    if (!req.file.mimetype.startsWith('image/')) {
+      return res.status(400).json({ success: false, message: 'Only image files are allowed.' })
+    }
+
+    const customer = await CustomerProfile.findOne({ where: { userId } })
+    if (!customer) {
+      return res.status(404).json({ success: false, message: 'Customer profile not found.' })
+    }
+
+    const file = req.file;
+    const aws_folder = `test`
+    const newImageUrl = await uploadFileToS3(file, aws_folder)
+
+    t = await sequelize.transaction()
+
+    await customer.update({ profileImage: newImageUrl }, { transaction: t })
+    customer.profileImage = newImageUrl
+
+    console.log('Customer profile image updated successfully.')
+    await t.commit()
+
+    return res.status(200).json({ success: true, message: 'Customer profile image updated successfully.', data: customer })
+
+  } catch (err) {
+    if (t) await t.rollback();
+    console.error('Update Customer Profile Image Error:', err);
+    return res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 }

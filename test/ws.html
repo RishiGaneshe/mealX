@@ -97,9 +97,9 @@
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" crossorigin="anonymous"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQyYWIyMzQzLTE1ZWEtNDc2Yi1hZTkwLTkxMTZmYTQ2OWVkYiIsInVzZXJuYW1lIjoiZ29wYWwiLCJpZGVudGlmaWVyIjoiZ29wYWxAZ21haWwuY29tIiwiaWRlbnRpZmllclR5cGUiOiJlbWFpbCIsImF1dGhQcm92aWRlciI6ImxvY2FsIiwiaXNPd25lciI6ZmFsc2UsImlzQ3VzdG9tZXIiOnRydWUsImlzQWRtaW4iOmZhbHNlLCJpc0d1ZXN0IjpmYWxzZSwiaWF0IjoxNzUzMzg3OTAzLCJleHAiOjE3NTMzOTg3MDN9.PJPTOlcau7fIH71U0GPsM5N0Aaj325-dGF40MUCfRX4';
+      const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQyYWIyMzQzLTE1ZWEtNDc2Yi1hZTkwLTkxMTZmYTQ2OWVkYiIsInVzZXJuYW1lIjoiZ29wYWwiLCJpZGVudGlmaWVyIjoiZ29wYWxAZ21haWwuY29tIiwiaWRlbnRpZmllclR5cGUiOiJlbWFpbCIsImF1dGhQcm92aWRlciI6ImxvY2FsIiwiaXNPd25lciI6ZmFsc2UsImlzQ3VzdG9tZXIiOnRydWUsImlzQWRtaW4iOmZhbHNlLCJpc0d1ZXN0IjpmYWxzZSwiaWF0IjoxNzUzNjkyNjAyLCJleHAiOjE3NTM3MDM0MDJ9.pCoG9YifudziIIsy2EghXk1EhDIo3wLiAlOAqqKnZX0';
 
-      const socket = io('http://localhost:4000', {
+      const socket = io('https://student.studentshub.fun', {
         auth: { token }
       });
 
@@ -145,11 +145,11 @@
         const orderPayload = {
           customerPlanId: "d01fcccf-1fa4-4811-b48c-c2e7c4d0dc01",
           tokens: [
-            "32aa1fc0-2b6a-4c83-b796-1dadfce4bde2",
+            "5d0e20e5-a3ea-4284-9b47-a39a9a791e14",
           ],
           customerId: "42ab2343-15ea-476b-ae90-9116fa469edb",
-          orderType: "delivery",
-          deliveryAddress:"HB-15, Rajendra Nagar, Indore"
+          orderType: "dine",
+          // deliveryAddress:"HB-15, Rajendra Nagar, Indore"
         }
 
         socket.emit('new_order', orderPayload, (response) => {

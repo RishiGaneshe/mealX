@@ -59,7 +59,7 @@ const MessProfile = sequelize.define('MessProfile', {
   },{
     timestamps: true,
     tableName: 'mess_profile'
-  })
+})
 
 
 module.exports= MessProfile

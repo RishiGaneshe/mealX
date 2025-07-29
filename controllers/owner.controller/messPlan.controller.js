@@ -319,7 +319,8 @@ exports.updateMessPlan = async (req, res) => {
       const { planId } = req.params
       const updateData = req.body
       const userId= req.user?.id
-
+      console.log(updateData)
+      
       if (!planId || !isUUID(planId, 4)) {
         return res.status(400).json({ success: false, message: 'planId is required and should be valid.' })
       }
@@ -399,5 +400,67 @@ exports.updateMessPlan = async (req, res) => {
       if (transaction) await transaction.rollback()
       console.error('Error updating mess plan:', error)
       return res.status(500).json({ success: false, message: 'Internal server error.' })
+  }
+}
+
+
+exports.updateMessPlanImage = async (req, res) => {
+  let t
+  try {
+    const { planId } = req.params
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Image file is required.' })
+    }
+
+    if (!req.file.mimetype.startsWith('image/')) {
+      return res.status(400).json({ success: false, message: 'Only image files are allowed.' })
+    }
+
+    const userId = req.user?.id
+    const plan = await MessPlan.findOne({ where: { planId } })
+    if (!plan) {
+      return res.status(404).json({ success: false, message: 'Mess plan not found.' });
+    }
+
+    const mess = await MessProfile.findOne({
+      where: {
+        messId: plan.messId,
+        messOwnerId: userId
+      }
+    })
+
+    if (!mess) {
+      return res.status(403).json({ success: false, message: 'Unauthorized to update this plan image.' });
+    }
+
+    const file = req.file
+    const aws_folder = `test`
+    const newImageUrl = await uploadFileToS3(file, aws_folder)
+
+    t = await sequelize.transaction()
+
+    const oldImageUrl = plan.imageUrl
+    await plan.update({ imageUrl: newImageUrl }, { transaction: t })
+    plan.imageUrl= newImageUrl
+
+    await MessPlanActivityLog.create({
+      planId: plan.planId,
+      messId: plan.messId,
+      planName: plan.name,
+      action: 'updated',
+      performedBy: userId,
+      previousData: { imageUrl: oldImageUrl },
+      newData: { imageUrl: newImageUrl }
+    }, { transaction: t })
+
+    await t.commit()
+
+    console.log('Plan image updated successfully.')
+    return res.status(200).json({ success: true, message: 'Image updated successfully.', data: plan })
+
+  } catch (err) {
+    if (t) await t.rollback()
+    console.error('Update Plan Image Error:', err)
+    return res.status(500).json({ success: false, message: 'Internal Server Error' })
   }
 }

@@ -3,7 +3,7 @@ const router= express.Router()
 const CUSTOMER= require('../controllers/customer.controller/customer.controller')
 const RAZORPAY= require('../controllers/razorpay.controller/razorpay.controller')
 const ORDER= require('../controllers/customer.controller/orders.controller')
-
+const { upload }= require('../services/multer_services_')
 
 
 router.get('/mess', CUSTOMER.getAllMesses )  // done
@@ -27,6 +27,8 @@ router.get('/mess/orders/past', ORDER.getOrdersForPastDays)
 router.get('/mess/orders/:messId', ORDER.getOrdersByMessId)
 
 
+
+router.post('/profile/image', upload.single('image'), CUSTOMER.postUpdateCustomerProfileImage)
 
 router.post('/mess/add', CUSTOMER.postSubscribeToMess)    // Done
 

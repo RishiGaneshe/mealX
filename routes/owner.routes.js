@@ -31,7 +31,9 @@ router.get('/mess/:messId/customer/:customerId/stats/transactions', CUSTOMERINFO
 
 
 
+router.post('/profile/image', upload.single('image'), OWNER.updateOwnerProfileImage)
 
+router.post('/mess/profile/image/:messId', upload.single('image'), OWNER.updateMessLogoImage)
 
 router.post('/mess',upload.fields([ { name: 'logoFile', maxCount: 1 }, { name: 'fssaiDoc', maxCount: 1 }, { name: 'activationDoc', maxCount: 1 }]), OWNER.createMessProfile )  // done
 
@@ -46,6 +48,8 @@ router.post('/mess/plan/deactivate/:planId', PLAN.deactivateMessPlan)  // done
 router.post('/mess/plan/delete/:planId', PLAN.deleteMessPlan)  // done
   
 router.post('/mess/plan/update/:planId', PLAN.updateMessPlan)  // done
+
+router.post('/mess/plan/update/image/:planId', upload.single('image'), PLAN.updateMessPlanImage)  
 
 router.post('/mess/plan/record', OWNER.getMessPlanActivityLogs)  // done
 

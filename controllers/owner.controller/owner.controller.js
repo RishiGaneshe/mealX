@@ -396,3 +396,86 @@ exports.getMessPlanActivityLogs = async (req, res) => {
   }
 }
 
+
+exports.updateOwnerProfileImage = async (req, res) => {
+  let t
+  try {
+    const userId = req.user?.id
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Image file is required.' })
+    }
+    if (!req.file.mimetype.startsWith('image/')) {
+      return res.status(400).json({ success: false, message: 'Only image files are allowed.' })
+    }
+
+    const owner = await OwnerProfile.findOne({ where: { userId } })
+    if (!owner) {
+      return res.status(404).json({ success: false, message: 'Owner profile not found.' })
+    }
+
+    const file = req.file
+    const aws_folder = `test`
+    const newImageUrl = await uploadFileToS3(file, aws_folder)
+
+    t = await sequelize.transaction()
+
+    await owner.update({ profileImage: newImageUrl }, { transaction: t })
+    owner.profileImage= newImageUrl
+
+    await t.commit()
+
+    console.log('Owner profile image updated successfully.')
+    return res.status(200).json({ success: true, message: 'Owner profile image updated successfully.', data: owner })
+
+  } catch (err) {
+    if (t) await t.rollback()
+    console.error('Update Owner Profile Image Error:', err)
+    return res.status(500).json({ success: false, message: 'Internal Server Error' })
+  }
+}
+
+
+exports.updateMessLogoImage = async (req, res) => {
+  let transaction
+  try {
+    const { messId } = req.params
+    if (!messId || !isUUID(messId, 4)) {
+      return res.status(400).json({ success: false, message: 'messId is required and should be valid.' })
+    }
+
+    const userId = req.user?.id
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Image file is required.' })
+    }
+    if (!req.file.mimetype.startsWith('image/')) {
+      return res.status(400).json({ success: false, message: 'Only image files are allowed.' })
+    }
+
+    const mess = await MessProfile.findOne({
+      where: { messId: messId, messOwnerId: userId }
+    })
+
+    if (!mess) {
+      return res.status(404).json({ success: false, message: 'Mess profile not found for the owner.' })
+    }
+
+    const awsFolder = `test`
+    const uploadedLogoUrl = await uploadFileToS3(req.file, awsFolder)
+
+    transaction = await sequelize.transaction()
+
+    await mess.update({ logoUrl: uploadedLogoUrl }, { transaction })
+    mess.logoUrl= uploadedLogoUrl
+
+    await transaction.commit()
+
+    console.log('Mess logo updated successfully.')
+    return res.status(200).json({ success: true, message: 'Mess logo updated successfully.', data: mess })
+
+  } catch (error) {
+    if (transaction) await transaction.rollback()
+    console.error('Update Mess Logo Image Error:', error)
+    return res.status(500).json({ success: false, message: 'Internal Server Error' })
+  }
+}
+
