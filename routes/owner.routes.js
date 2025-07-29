@@ -26,7 +26,7 @@ router.get('/mess/:messId/customer/:customerId/active-plans', CUSTOMERINFO.getAl
 router.get('/mess/:messId/customer/:customerId/active-plans/:customerPlanId', CUSTOMERINFO.getActivePlanForCustomerByCustomerPlanId) // done
 
 
-
+// 
 
 
 router.post('/profile/image', upload.single('image'), OWNER.updateOwnerProfileImage)  //done
