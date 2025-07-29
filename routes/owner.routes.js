@@ -31,7 +31,7 @@ router.get('/mess/:messId/customer/:customerId/stats/transactions', CUSTOMERINFO
 
 
 
-router.post('/profile/image', upload.single('image'), OWNER.updateOwnerProfileImage)
+router.post('/profile/image', upload.single('image'), OWNER.updateOwnerProfileImage)  //done
 
 router.post('/mess/profile/image/:messId', upload.single('image'), OWNER.updateMessLogoImage)
 
