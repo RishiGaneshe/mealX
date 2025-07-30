@@ -116,6 +116,22 @@ exports.Listen_WS_CustomerOrders = async (socket, io, connectedClients) => {
                 }
               )
 
+              const issued = new Set(plan.issuedTokens || [])
+              const used = new Set(plan.usedTokens || [])
+              tokens.forEach(id => {
+                  used.add(id)
+                  issued.delete(id)
+              })
+
+              plan.issuedTokens = Array.from(issued)
+              plan.usedTokens = Array.from(used)
+              plan.usedTokenCount = plan.usedTokens.length
+              if (plan.issuedTokens.length === 0) {
+                plan.status = 'completed'
+              }
+
+              await plan.save({ transaction: t })
+
               const orderStatus= 'pending'
               const order= await db_Create_Order(customer, plan, mess, dbTokens, payload, orderStatus, t)
                 if(order === 'invalid_order_type'){

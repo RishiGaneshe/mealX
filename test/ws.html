@@ -97,9 +97,9 @@
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" crossorigin="anonymous"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQyYWIyMzQzLTE1ZWEtNDc2Yi1hZTkwLTkxMTZmYTQ2OWVkYiIsInVzZXJuYW1lIjoiZ29wYWwiLCJpZGVudGlmaWVyIjoiZ29wYWxAZ21haWwuY29tIiwiaWRlbnRpZmllclR5cGUiOiJlbWFpbCIsImF1dGhQcm92aWRlciI6ImxvY2FsIiwiaXNPd25lciI6ZmFsc2UsImlzQ3VzdG9tZXIiOnRydWUsImlzQWRtaW4iOmZhbHNlLCJpc0d1ZXN0IjpmYWxzZSwiaWF0IjoxNzUzNjkyNjAyLCJleHAiOjE3NTM3MDM0MDJ9.pCoG9YifudziIIsy2EghXk1EhDIo3wLiAlOAqqKnZX0';
+      const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQyYWIyMzQzLTE1ZWEtNDc2Yi1hZTkwLTkxMTZmYTQ2OWVkYiIsInVzZXJuYW1lIjoiZ29wYWwiLCJpZGVudGlmaWVyIjoiZ29wYWxAZ21haWwuY29tIiwiaWRlbnRpZmllclR5cGUiOiJlbWFpbCIsImF1dGhQcm92aWRlciI6ImxvY2FsIiwiaXNPd25lciI6ZmFsc2UsImlzQ3VzdG9tZXIiOnRydWUsImlzQWRtaW4iOmZhbHNlLCJpc0d1ZXN0IjpmYWxzZSwiaWF0IjoxNzUzODg2MDcwLCJleHAiOjE3NTM4OTY4NzB9.4n-N_ycG__VT0VW1GIKXLV-wBWcskgwQamrMTNRa6gQ';
 
-      const socket = io('https://student.studentshub.fun', {
+      const socket = io('http://localhost:4000', {
         auth: { token }
       });
 
@@ -143,9 +143,9 @@
 
       document.getElementById('placeOrder').addEventListener('click', () => {
         const orderPayload = {
-          customerPlanId: "d01fcccf-1fa4-4811-b48c-c2e7c4d0dc01",
+          customerPlanId: "117b817e-392d-4626-94b1-6c56d1ddc49c",
           tokens: [
-            "5d0e20e5-a3ea-4284-9b47-a39a9a791e14",
+            "33e794e0-6f95-486d-a592-e7f16a3b918a",
           ],
           customerId: "42ab2343-15ea-476b-ae90-9116fa469edb",
           orderType: "dine",

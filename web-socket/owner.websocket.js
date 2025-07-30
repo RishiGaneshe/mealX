@@ -24,6 +24,11 @@ exports.Listen_WS_OwnerOrderDecision= async(socket, io, connectedClients)=>{
               return socket.emit('order_response', { success: false, statusCode: 400, type: 'invalid_decision', message: 'Decision must be either "accepted" or "rejected".'})
             }
 
+            const uniqueTokens = new Set(submittedTokenIds)
+            if (uniqueTokens.size !== submittedTokenIds.length) {
+                return socket.emit('order_response', { success: false, statusCode: 400, type: 'duplicate_tokens', message: 'Duplicate tokens detected in request.'})
+            }
+
           transaction = await sequelize.transaction()
   
           const order = await Order.findOne({
@@ -76,22 +81,6 @@ exports.Listen_WS_OwnerOrderDecision= async(socket, io, connectedClients)=>{
                 return socket.emit('order_response', { success: false, statusCode: 404, type: 'plan_not_found', message: 'purchased plan not found' })
               }
               
-              const issued = new Set(plan.issuedTokens || [])
-              const used = new Set(plan.usedTokens || [])
-              submittedTokenIds.forEach(id => {
-                issued.delete(id)
-                used.add(id)
-              })
-
-              plan.issuedTokens = Array.from(issued)
-              plan.usedTokens = Array.from(used)
-              plan.usedTokenCount = plan.usedTokens.length
-              if (plan.issuedTokens.length === 0) {
-                plan.status = 'completed'
-              }
-
-              await plan.save({ transaction })
-
               await SubmittedTokenGroup.create({
                 customerId,
                 customerPlanId: plan.customerPlanId,
@@ -118,6 +107,7 @@ exports.Listen_WS_OwnerOrderDecision= async(socket, io, connectedClients)=>{
 
           console.log('[Socket] Accepting Order....')
           } else {
+
             await Token.update(
               { status: 'available' },
               { where: { 
@@ -126,6 +116,38 @@ exports.Listen_WS_OwnerOrderDecision= async(socket, io, connectedClients)=>{
                 customerPlanId: order.customerPlanId,
               }, transaction }
             )
+
+            const plan = await CustomerPlan.findOne({
+              where: { customerPlanId: order.customerPlanId },
+              transaction,
+              lock: transaction.LOCK.UPDATE
+            })
+            if (!plan) {
+              await transaction.rollback()
+              return socket.emit('order_response', { success: false, statusCode: 404, type: 'plan_not_found', message: 'purchased plan not found' })
+            }
+
+            const used = new Set(plan.usedTokens || [])
+            const issued = new Set(plan.issuedTokens || [])
+
+            submittedTokenIds.forEach(id => {
+              used.delete(id)
+              issued.add(id)
+            })
+
+            plan.usedTokens = Array.from(used)
+            plan.issuedTokens = Array.from(issued)
+            plan.usedTokenCount = plan.usedTokens.length
+
+            if (plan.issuedTokens.length > 0) {
+              plan.status = 'active'
+            }  
+
+            // const isConsistent = submittedTokenIds.every(id => used.has(id))
+            // if (!isConsistent) {
+            //   throw new Error('Plan-token mismatch: some tokens not found in usedTokens')
+            // }          
+            await plan.save({ transaction })
 
             await Order.update(
               { orderStatus: 'rejected', tokenStatus: 'refunded' },
