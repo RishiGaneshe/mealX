@@ -264,7 +264,7 @@ exports.getAllIssuedPlansOfCustomerForAmess = async (req, res) => {
               },
           },
           order: [['expiryDate', 'ASC']],
-          attributes: [ 'customerPlanId', 'planId', 'messId', 'name', 'price', 'durationDays', 'imageUrl', 'purchaseDate', 'expiryDate','status', 'issuedTokenCount', 'usedTokenCount', , 'description', 'menu' ]
+          attributes: [ 'customerPlanId', 'planId', 'messId', 'name', 'price', 'durationDays', 'imageUrl', 'purchaseDate', 'expiryDate','status', 'issuedTokenCount', 'usedTokenCount', 'description', 'menu' ]
       })
   
       return res.status(200).json({
