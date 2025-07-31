@@ -325,6 +325,32 @@ exports.updateMessProfile = async (req, res) => {
 }
 
 
+exports.getLimitedOwnerProfile = async (req, res) => {
+  try {
+    const userId = req.user.id
+      if (!userId) {
+        return res.status(401).json({ success: false, message: 'Unauthorized. User ID is missing from the request context.'})
+      }
+
+    const profile = await OwnerProfile.findOne({
+      where: { userId },
+      attributes: ['ownerName', 'mess_ids', 'profileImage', 'messCount', 'city', 'ownerAddress']
+    })
+
+    if (!profile) {
+      return res.status(404).json({ success: false, message: 'Owner profile not found.' })
+    }
+
+    console.log('Basic Owner profile fetched successfully.')
+    return res.status(200).json({ success: true, message: 'Owner profile fetched successfully.', data: profile })
+
+  } catch (err) {
+    console.error('Error fetching owner profile:', err.stack || err.message)
+    return res.status(500).json({ success: false, message: 'Internal server error.'})
+  }
+}
+
+
 exports.getOwnerProfile = async (req, res) => {
   try {
     const userId = req.user.id
@@ -343,6 +369,7 @@ exports.getOwnerProfile = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Owner profile not found.' })
     }
 
+    console.log('Owner profile fetched successfully.')
     return res.status(200).json({ success: true, message: 'Owner profile fetched successfully.', data: profile })
 
   } catch (err) {

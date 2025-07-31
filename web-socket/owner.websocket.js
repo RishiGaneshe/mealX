@@ -6,6 +6,8 @@ const SubmittedTokenGroup= require('../models/usedTokens.schema')
 const CustomerPlan = require('../models/customerPlans.schema')
 const MessProfile= require('../models/mess.schema')
 const { orderDataEmitter }= require('../web-socket/auth.websocket')
+const { getOrderStatusMessage }= require('../utils/order_messeges_utils')
+
 
 
 exports.Listen_WS_OwnerOrderDecision= async(socket, io, connectedClients)=>{
@@ -21,12 +23,12 @@ exports.Listen_WS_OwnerOrderDecision= async(socket, io, connectedClients)=>{
             }
       
             if (!['accepted', 'rejected'].includes(decision)) {
-              return socket.emit('order_response', { success: false, statusCode: 400, type: 'invalid_decision', message: 'Decision must be either "accepted" or "rejected".'})
+              return socket.emit('order_response', { success: false, statusCode: 400, type: 'invalid_decision', message: 'Invalid decision: Must be either "accepted" or "rejected".'})
             }
 
             const uniqueTokens = new Set(submittedTokenIds)
             if (uniqueTokens.size !== submittedTokenIds.length) {
-                return socket.emit('order_response', { success: false, statusCode: 400, type: 'duplicate_tokens', message: 'Duplicate tokens detected in request.'})
+                return socket.emit('order_response', { success: false, statusCode: 400, type: 'duplicate_tokens', message: 'Duplicate tokens detected. Please check the submitted token list.'})
             }
 
           transaction = await sequelize.transaction()
@@ -36,16 +38,16 @@ exports.Listen_WS_OwnerOrderDecision= async(socket, io, connectedClients)=>{
             transaction,
             lock: transaction.LOCK.UPDATE
           })
-            if (!order || order.orderStatus !== 'pending') {
-              await transaction.rollback()
-              return socket.emit('order_response', { success: false, statusCode: 404, type: 'not_found_or_invalid_state', message: 'Order not found or not in a valid state.'})
-            }
+          if ( !order || order.orderStatus !== 'pending') {
+            await transaction.rollback()
+            return socket.emit('order_response', { success: false, statusCode: 409, type: 'order_not_pending', message: getOrderStatusMessage(order.orderStatus) })
+          }
           
           const mess = await MessProfile.findOne({ where: { messId: order.messId } })
           if (!mess || mess.messOwnerId !== user.id) {
               await transaction.rollback()
-              return socket.emit('order_response', { success: false, statusCode: 403, type: 'unauthorized_mess', message: 'You do not own this mess.' })
-            }
+              return socket.emit('order_response', { success: false, statusCode: 403, type: 'unauthorized_mess', message: 'Access denied: You are not authorized to manage this mess.' })
+          }
       
           const tokens = await Token.findAll({
             where: {
@@ -62,6 +64,15 @@ exports.Listen_WS_OwnerOrderDecision= async(socket, io, connectedClients)=>{
             return socket.emit('order_response', { success: false, statusCode: 400, type: 'invalid_tokens', message: 'Some tokens are missing or in invalid state.'})
           }
 
+          const plan = await CustomerPlan.findOne({ where: { customerPlanId: order.customerPlanId },
+            transaction,
+            lock: transaction.LOCK.UPDATE
+          })
+          if (!plan) {
+            await transaction.rollback()
+            return socket.emit('order_response', { success: false, statusCode: 404, type: 'plan_not_found', message: 'The purchased plan could not be found. Please try again.' })
+          }
+
           if (decision === 'accepted') {
               const totalSubmittedPrice = tokens.reduce((sum, t) => sum + t.tokenPrice, 0)
               await Token.update(
@@ -72,15 +83,6 @@ exports.Listen_WS_OwnerOrderDecision= async(socket, io, connectedClients)=>{
                 }
               )
 
-              const plan = await CustomerPlan.findOne({
-                where: { customerPlanId: order.customerPlanId },
-                transaction
-              })
-              if (!plan) {
-                await transaction.rollback()
-                return socket.emit('order_response', { success: false, statusCode: 404, type: 'plan_not_found', message: 'purchased plan not found' })
-              }
-              
               await SubmittedTokenGroup.create({
                 customerId,
                 customerPlanId: plan.customerPlanId,
@@ -116,16 +118,6 @@ exports.Listen_WS_OwnerOrderDecision= async(socket, io, connectedClients)=>{
                 customerPlanId: order.customerPlanId,
               }, transaction }
             )
-
-            const plan = await CustomerPlan.findOne({
-              where: { customerPlanId: order.customerPlanId },
-              transaction,
-              lock: transaction.LOCK.UPDATE
-            })
-            if (!plan) {
-              await transaction.rollback()
-              return socket.emit('order_response', { success: false, statusCode: 404, type: 'plan_not_found', message: 'purchased plan not found' })
-            }
 
             const used = new Set(plan.usedTokens || [])
             const issued = new Set(plan.issuedTokens || [])
@@ -177,7 +169,7 @@ exports.Listen_WS_OwnerOrderDecision= async(socket, io, connectedClients)=>{
     } catch (err) {
       if (transaction) await transaction.rollback()
       console.error('[owner_order_decision] error:', err)
-      socket.emit('order_response', { success: false, statusCode: 500, type: 'internal_error', message: 'Something went wrong while processing the order.'})
+      socket.emit('order_response', { success: false, statusCode: 500, type: 'internal_error', message: 'Something went wrong while processing the order. Please try again later.'})
     }
   })
 }

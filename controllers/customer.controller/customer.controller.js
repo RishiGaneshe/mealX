@@ -327,6 +327,57 @@ exports.getIssuedPlanDetailsByCustomerPlanId = async (req, res) => {
 }
 
 
+exports.getLimitedCustomerProfile = async (req, res) => {
+  const customerId = req.user?.id
+
+  if (!customerId || !isUUID(customerId, 4)) {
+    return res.status(400).json({ success: false, statusCode: 400, message: 'Invalid or missing customer ID.'})
+  }
+
+  try {
+    const customer = await CustomerProfile.findOne({
+      where: { userId: customerId, isActive: true },
+      attributes: ['customerName', 'mess_ids', 'profileImage', 'city', 'customerAddress']
+    })
+
+    if (!customer) {
+      return res.status(404).json({ success: false, statusCode: 404, message: 'Customer profile not found.'})
+    }
+
+    return res.status(200).json({ success: true, statusCode: 200, message: 'Basic customer profile fetched successfully.', data: customer })
+  } catch (err) {
+    console.error('Limited Customer Profile error:', err)
+    return res.status(500).json({ success: false, message: 'Internal server error.' })
+  }
+}
+
+
+exports.getFullCustomerProfile = async (req, res) => {
+  const customerId = req.user?.id
+
+  if (!customerId || !isUUID(customerId, 4)) {
+    return res.status(400).json({ success: false, statusCode: 400, message: 'Invalid or missing customer ID.'})
+  }
+
+  try {
+    const customer = await CustomerProfile.findOne({
+      where: { userId: customerId, isActive: true },
+    })
+
+    if (!customer) {
+      return res.status(404).json({ success: false, statusCode: 404, message: 'Customer profile not found.'})
+    }
+
+    return res.status(200).json({ success: true, statusCode: 200, message: 'Full customer profile fetched successfully.', data: customer })
+  } catch (err) {
+    console.error('Full Customer Profile error:', err)
+    return res.status(500).json({ success: false, message: 'Internal server error.' })
+  }
+}
+
+
+
+
 exports.postCustomerTransactionData = async (req, res) => {
   const { messId } = req.body
   const customerId = req.user.id

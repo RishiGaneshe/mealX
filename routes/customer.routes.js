@@ -20,15 +20,19 @@ router.get('/mess/:messId/plan/issued', CUSTOMER.getAllIssuedPlansOfCustomerForA
 
 router.get('/mess/:messId/plan/:customerPlanId', CUSTOMER.getIssuedPlanDetailsByCustomerPlanId)  // done
 
-router.get('/mess/orders', ORDER.getTodayOrdersByCustomer)
+router.get('/mess/orders', ORDER.getTodayOrdersByCustomer)  // done
 
-router.get('/mess/orders/past', ORDER.getOrdersForPastDays)
+router.get('/mess/orders/past', ORDER.getOrdersForPastDays)  // done
 
-router.get('/mess/orders/:messId', ORDER.getOrdersByMessId)
+router.get('/mess/orders/:messId', ORDER.getOrdersByMessId)  // done
+
+router.get('/profile/basic', CUSTOMER.getLimitedCustomerProfile)  // done
+
+router.get('/profile/complete', CUSTOMER.getFullCustomerProfile)  // done
 
 
 
-router.post('/profile/image', upload.single('image'), CUSTOMER.postUpdateCustomerProfileImage)
+router.post('/profile/image', upload.single('image'), CUSTOMER.postUpdateCustomerProfileImage)  // done
 
 router.post('/mess/add', CUSTOMER.postSubscribeToMess)    // Done
 

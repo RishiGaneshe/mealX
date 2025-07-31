@@ -7,9 +7,12 @@ const CUSTOMERINFO= require('../controllers/owner.controller/customerInfo.contro
 const RAZORPAY= require('../controllers/razorpay.controller/razorpay.controller')
 const SUBMITTOKENS= require('../controllers/owner.controller/submitTokens.controller')
 const STATS=require('../controllers/owner.controller/stats.controller')
+const ORDER= require('../controllers/owner.controller/orders.controller')
 
 
 router.get('/profile', OWNER.getOwnerProfile)  // done
+
+router.get('/profile/basic', OWNER.getLimitedOwnerProfile)  // done
 
 router.get('/mess/all', OWNER.handleGetAllMess)  // done
 
@@ -25,13 +28,17 @@ router.get('/mess/:messId/customer/:customerId/active-plans', CUSTOMERINFO.getAl
 
 router.get('/mess/:messId/customer/:customerId/active-plans/:customerPlanId', CUSTOMERINFO.getActivePlanForCustomerByCustomerPlanId) // done
 
+router.get('/mess/:messId/orders', ORDER.getTodayOrdersForMess)
 
-// 
+router.get('/mess/:messId/orders/past', ORDER.getOrdersForPastDaysForMess)
+
+
+
 
 
 router.post('/profile/image', upload.single('image'), OWNER.updateOwnerProfileImage)  //done
 
-router.post('/mess/profile/image/:messId', upload.single('image'), OWNER.updateMessLogoImage)
+router.post('/mess/profile/image/:messId', upload.single('image'), OWNER.updateMessLogoImage)  // done
 
 router.post('/mess',upload.fields([ { name: 'logoFile', maxCount: 1 }, { name: 'fssaiDoc', maxCount: 1 }, { name: 'activationDoc', maxCount: 1 }]), OWNER.createMessProfile )  // done
 
@@ -47,7 +54,7 @@ router.post('/mess/plan/delete/:planId', PLAN.deleteMessPlan)  // done
   
 router.post('/mess/plan/update/:planId', PLAN.updateMessPlan)  // done
 
-router.post('/mess/plan/update/image/:planId', upload.single('image'), PLAN.updateMessPlanImage)  
+router.post('/mess/plan/update/image/:planId', upload.single('image'), PLAN.updateMessPlanImage)   // done
 
 router.post('/mess/plan/record', OWNER.getMessPlanActivityLogs)  // done
 

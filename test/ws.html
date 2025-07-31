@@ -97,7 +97,7 @@
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" crossorigin="anonymous"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQyYWIyMzQzLTE1ZWEtNDc2Yi1hZTkwLTkxMTZmYTQ2OWVkYiIsInVzZXJuYW1lIjoiZ29wYWwiLCJpZGVudGlmaWVyIjoiZ29wYWxAZ21haWwuY29tIiwiaWRlbnRpZmllclR5cGUiOiJlbWFpbCIsImF1dGhQcm92aWRlciI6ImxvY2FsIiwiaXNPd25lciI6ZmFsc2UsImlzQ3VzdG9tZXIiOnRydWUsImlzQWRtaW4iOmZhbHNlLCJpc0d1ZXN0IjpmYWxzZSwiaWF0IjoxNzUzODg2MDcwLCJleHAiOjE3NTM4OTY4NzB9.4n-N_ycG__VT0VW1GIKXLV-wBWcskgwQamrMTNRa6gQ';
+      const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQyYWIyMzQzLTE1ZWEtNDc2Yi1hZTkwLTkxMTZmYTQ2OWVkYiIsInVzZXJuYW1lIjoiZ29wYWwiLCJpZGVudGlmaWVyIjoiZ29wYWxAZ21haWwuY29tIiwiaWRlbnRpZmllclR5cGUiOiJlbWFpbCIsImF1dGhQcm92aWRlciI6ImxvY2FsIiwiaXNPd25lciI6ZmFsc2UsImlzQ3VzdG9tZXIiOnRydWUsImlzQWRtaW4iOmZhbHNlLCJpc0d1ZXN0IjpmYWxzZSwiaWF0IjoxNzUzOTQ3ODQzLCJleHAiOjE3NTM5NTg2NDN9.N6tFYvo627Xi7Lt7MV4dd7jw0qAOrL6Tw3gYxWg2228';
 
       const socket = io('http://localhost:4000', {
         auth: { token }
@@ -145,11 +145,10 @@
         const orderPayload = {
           customerPlanId: "117b817e-392d-4626-94b1-6c56d1ddc49c",
           tokens: [
-            "33e794e0-6f95-486d-a592-e7f16a3b918a",
+            "7517cfc3-4d35-4233-9a81-c63f1aca7a6f",
           ],
           customerId: "42ab2343-15ea-476b-ae90-9116fa469edb",
           orderType: "dine",
-          // deliveryAddress:"HB-15, Rajendra Nagar, Indore"
         }
 
         socket.emit('new_order', orderPayload, (response) => {

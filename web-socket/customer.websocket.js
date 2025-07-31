@@ -140,7 +140,6 @@ exports.Listen_WS_CustomerOrders = async (socket, io, connectedClients) => {
                     return socket.emit('order_response', { success: false, statusCode: 400, type: 'missing_address', message: 'Address is required for delivery orders.'})
                 }
 
-              
               const isConnected = connectedClients.has(ownerId)
               const path= 'incoming_order'
               const message= `[Socket] New token submission order received`

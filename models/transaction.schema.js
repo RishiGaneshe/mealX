@@ -37,6 +37,10 @@ const Transaction = sequelize.define('Transaction', {
     onDelete: 'CASCADE'
   },
 
+  planName: { 
+    type: DataTypes.STRING
+  }, 
+
   tokensPurchased: {
     type: DataTypes.INTEGER,
     allowNull: false,

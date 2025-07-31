@@ -2,7 +2,7 @@ const { redisClient }= require('../services/redis_services_')
 const { verifyToken } = require('../services/jwt_services_')
 const USER = require('../models/user.schema') 
 const secret = process.env.Secret
-//
+
 
 
 exports.socketConnectionAuthMiddleware = (io) => {
