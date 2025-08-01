@@ -8,7 +8,7 @@ const { sequelize } = require('../services/connection_services_')
 const { Op } = require('sequelize')
 const { db_Create_Order }= require('../database/create_Order_')
 const { orderDataEmitter }= require('../web-socket/auth.websocket')
-
+const { getTodayOrderCountsByStatus }= require('../utils/order_stats_counts_util')
 
 exports.Listen_WS_CustomerOrders = async (socket, io, connectedClients) => {
    socket.on('new_order', async (payload) => {
@@ -140,13 +140,18 @@ exports.Listen_WS_CustomerOrders = async (socket, io, connectedClients) => {
                     return socket.emit('order_response', { success: false, statusCode: 400, type: 'missing_address', message: 'Address is required for delivery orders.'})
                 }
 
+              await t.commit()
+
+              const orderData = order.get({ plain: true })
+              const count= await getTodayOrderCountsByStatus(plan.messId)
+              
+              const finalPayload= { ...orderData, count}
               const isConnected = connectedClients.has(ownerId)
               const path= 'incoming_order'
               const message= `[Socket] New token submission order received`
               const redisKey = `pending:orders:${ownerId}`
-              await orderDataEmitter(isConnected, ownerId, path, message, order, redisKey, io)
+              await orderDataEmitter(isConnected, ownerId, path, message, finalPayload, redisKey, io)
         
-              await t.commit()
             
               socket.emit('order_response', { success: true, statusCode: 200, type: 'order_placed', message: 'Order successfully pushed to owner.'})
             

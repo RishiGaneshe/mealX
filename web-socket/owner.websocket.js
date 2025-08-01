@@ -148,7 +148,10 @@ exports.Listen_WS_OwnerOrderDecision= async(socket, io, connectedClients)=>{
 
           console.log('[Socket] Rejecting Order....')
           }
-  
+
+          await transaction.commit()
+          console.log('[Socket] Order Action Completed.')
+          
           const isConnected = connectedClients.has(customerId)
           const path= 'order_update'
           const message= `Your order has been ${decision} by the owner.`
@@ -156,9 +159,6 @@ exports.Listen_WS_OwnerOrderDecision= async(socket, io, connectedClients)=>{
           
           await orderDataEmitter(isConnected, customerId, path, message, payload, redisKey, io)
 
-          await transaction.commit()
-          console.log('[Socket] Order Action Completed.')
-          
           socket.emit('order_response', { success: true, statusCode: 200, type: 'order_processed', message: `Order ${decision} successfully.`,
             data: {
               submittedTokenIds,
