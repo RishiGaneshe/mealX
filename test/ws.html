@@ -90,6 +90,7 @@
   <div class="container">
     <h1>Customer: Submit New Order</h1>
     <button id="placeOrder">Place Order</button>
+    <button id="cancelOrder">Cancel Order</button>
 
     <div id="log"></div>
   </div>
@@ -97,7 +98,7 @@
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" crossorigin="anonymous"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQyYWIyMzQzLTE1ZWEtNDc2Yi1hZTkwLTkxMTZmYTQ2OWVkYiIsInVzZXJuYW1lIjoiZ29wYWwiLCJpZGVudGlmaWVyIjoiZ29wYWxAZ21haWwuY29tIiwiaWRlbnRpZmllclR5cGUiOiJlbWFpbCIsImF1dGhQcm92aWRlciI6ImxvY2FsIiwiaXNPd25lciI6ZmFsc2UsImlzQ3VzdG9tZXIiOnRydWUsImlzQWRtaW4iOmZhbHNlLCJpc0d1ZXN0IjpmYWxzZSwiaWF0IjoxNzU0MDI2MDY0LCJleHAiOjE3NTQwMzY4NjR9.OfrHuCRZHrjnZ98CMjNZ26h2JU_UDcdj5HmsIlUcmmo';
+      const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjQyYWIyMzQzLTE1ZWEtNDc2Yi1hZTkwLTkxMTZmYTQ2OWVkYiIsInVzZXJuYW1lIjoiZ29wYWwiLCJpZGVudGlmaWVyIjoiZ29wYWxAZ21haWwuY29tIiwiaWRlbnRpZmllclR5cGUiOiJlbWFpbCIsImF1dGhQcm92aWRlciI6ImxvY2FsIiwiaXNPd25lciI6ZmFsc2UsImlzQ3VzdG9tZXIiOnRydWUsImlzQWRtaW4iOmZhbHNlLCJpc0d1ZXN0IjpmYWxzZSwiaWF0IjoxNzU0MDUyMTA5LCJleHAiOjE3NTQwNjI5MDl9.VBszHku3U-CR0CQmrR8lCtmaYPQFd5icYEiYSwjBbgc';
 
       const socket = io('http://localhost:4000', {
         auth: { token }
@@ -133,6 +134,7 @@
       })
 
       socket.on('order_update', (res) => {
+        console.log('order_update event data:', res)
         if (res?.success) {
           console.log(res.data)
           log(`Owner response to order: ${res.message}`, 'success')
@@ -145,20 +147,55 @@
         const orderPayload = {
           customerPlanId: "117b817e-392d-4626-94b1-6c56d1ddc49c",
           tokens: [
-            "f5daf109-a4ea-4dce-b75a-5db356d33163",
+            "e744a48b-946c-4d12-b130-c5265c10555e",
           ],
           customerId: "42ab2343-15ea-476b-ae90-9116fa469edb",
           orderType: "dine",
         }
 
         socket.emit('new_order', orderPayload, (response) => {
+          localStorage.setItem('orderPayload', JSON.stringify(orderPayload))
           if (response?.success) {
-            log(`Server ACK: ${response.message || 'Order successfully placed.'}`, 'success')
+            log(`Server ACK: ${response.message || 'Order successfully placed.'}`, 'success');
           } else {
-            log(`Server rejected order [${response?.type || 'error'}]: ${response?.message || 'Unknown error'}`, 'error')
+            log(`Server rejected order [${response?.type || 'error'}]: ${response?.message || 'Unknown error'}`, 'error');
           }
         })
+
       })
+
+      document.getElementById('cancelOrder').addEventListener('click', () => {
+        const rawPayload = localStorage.getItem('orderPayload')
+          if (!rawPayload) {
+            log('No order found in localStorage to cancel.', 'error')
+            return
+          }
+
+          let orderPayload
+          try {
+            orderPayload = JSON.parse(rawPayload);
+          } catch (err) {
+            log('Corrupted order data in localStorage.', 'error');
+            return
+          }
+
+          socket.emit('cancel_order', orderPayload, (response) => {
+            if (response?.success) {
+              log(`Server ACK: ${response.message || 'Order cancellation successful.'}`, 'success')
+            } else {
+              log(`Server rejected cancellation [${response?.type || 'error'}]: ${response?.message || 'Unknown error'}`, 'error')
+            }
+          })
+        })
+
+        socket.on('cancel_order', (res) => {
+          if (res?.success) {
+            log(`Order Cancellation: ${res.message}`, 'success')
+          } else {
+            log(`Order Cancellation failed [${res?.type || 'error'}]: ${res?.message || 'Unknown error'}`, 'error')
+          }
+        })
+
     })
   </script>
 </body>

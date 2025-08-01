@@ -9,6 +9,9 @@ const { Op } = require('sequelize')
 const { db_Create_Order }= require('../database/create_Order_')
 const { orderDataEmitter }= require('../web-socket/auth.websocket')
 const { getTodayOrderCountsByStatus }= require('../utils/order_stats_counts_util')
+const Order= require('../models/orders.schema')
+
+
 
 exports.Listen_WS_CustomerOrders = async (socket, io, connectedClients) => {
    socket.on('new_order', async (payload) => {
@@ -142,19 +145,18 @@ exports.Listen_WS_CustomerOrders = async (socket, io, connectedClients) => {
 
               await t.commit()
 
+              socket.emit('order_response', { success: true, statusCode: 200, type: 'order_placed', message: 'Order successfully pushed to owner.'})
+
               const orderData = order.get({ plain: true })
               const count= await getTodayOrderCountsByStatus(plan.messId)
-              
               const finalPayload= { ...orderData, count}
               const isConnected = connectedClients.has(ownerId)
               const path= 'incoming_order'
               const message= `[Socket] New token submission order received`
               const redisKey = `pending:orders:${ownerId}`
+
               await orderDataEmitter(isConnected, ownerId, path, message, finalPayload, redisKey, io)
-        
-            
-              socket.emit('order_response', { success: true, statusCode: 200, type: 'order_placed', message: 'Order successfully pushed to owner.'})
-            
+         
           } catch (err) {
               if (t) await t.rollback()
               console.error('WebSocket order error:', err.message)
@@ -165,5 +167,117 @@ exports.Listen_WS_CustomerOrders = async (socket, io, connectedClients) => {
           console.error('[Socket] Error handling new_order:', err.message)
           socket.emit('order_response', { success: false, type: 'authentication_error', message: 'Authentication failed or internal server error.', statusCode: 500, data: null })
      }
+   })
+}
+
+
+exports.Listen_WS_CustomerCancelOrder= async( socket, io, connectedClients) =>{
+   socket.on('cancel_order', async(payload) =>{
+      let t
+      try{
+          const user = await authenticateSocketUser(socket, 'customer')
+          if (!user) return
+          const customerId= user.id
+          const { orderId, submittedTokenIds } = payload
+          console.log('orderId: ', orderId)
+
+          if (!orderId || !isUUID(orderId)) {
+            return socket.emit('cancel_order', { success: false, message: 'Invalid or missing orderId.' })
+          }
+
+          if( !submittedTokenIds || !Array.isArray(submittedTokenIds)){
+            return socket.emit('cancel_order', { success: false, message: 'Submitted tokens must be a valid array.'})
+          }
+          
+          t = await sequelize.transaction()
+
+          const order = await Order.findOne({
+            where: { orderId, customerId },
+            transaction: t,
+            lock: t.LOCK.UPDATE,
+          })
+    
+          if (!order) {
+            await t.rollback();
+            return socket.emit('cancel_order', { success: false, message: 'Order not found.'})
+          }
+
+          console.log('orderStatus: ',order.orderStatus)
+          if (order.orderStatus !== 'pending') {
+            await t.rollback()
+            return socket.emit('cancel_order', { success: false, message: 'Only pending orders can be cancelled.' })
+          }
+
+          if ( order.submittedTokenIds.length !== submittedTokenIds.length || !order.submittedTokenIds.every(id => submittedTokenIds.includes(id)) ) {
+            await t.rollback()
+            return socket.emit('cancel_order', { success: false, message: 'Submitted tokens do not match the order.'})
+          }
+
+          const mess = await MessProfile.findOne({ where: { messId: order.messId } })
+          if (!mess) {
+            await t.rollback();
+            return socket.emit('cancel_order', { success: false, message: 'Mess not found.' })
+          }
+
+          const plan = await CustomerPlan.findOne({ where: { customerPlanId: order.customerPlanId },
+            transaction: t,
+            lock: t.LOCK.UPDATE
+          })
+          if (!plan) {
+            await t.rollback();
+            return socket.emit('cancel_order', { success: false, message: 'The plan could not be found.' })
+          }
+
+          await Token.update(
+            { status: 'available' },
+            { where: { 
+              tokenId: submittedTokenIds,
+              customerId,
+              customerPlanId: order.customerPlanId,
+            }, 
+            transaction: t }
+          )
+
+          const used = new Set(plan.usedTokens || [])
+          const issued = new Set(plan.issuedTokens || [])
+
+          submittedTokenIds.forEach(id => {
+            used.delete(id)
+            issued.add(id)
+          })
+
+          plan.usedTokens = Array.from(used)
+          plan.issuedTokens = Array.from(issued)
+          plan.usedTokenCount = plan.usedTokens.length
+
+          if (plan.issuedTokens.length > 0) {
+            plan.status = 'active'
+          }  
+                  
+          await plan.save({ transaction: t })
+
+          await Order.update(
+            { orderStatus: 'cancelled', tokenStatus: 'refunded' },
+            { where: { orderId }, 
+            transaction : t}
+          )
+
+          await t.commit()
+    
+          socket.emit('cancel_order', { success: true, message: 'Order cancelled successfully.', orderId })
+
+          const isConnected = connectedClients.has(mess.messOwnerId)
+          const path= 'order_cancel_by_customer'
+          const message= `Order has been cancelled by the customer.`
+          const redisKey = `cancelling:order_cancel:${mess.messOwnerId}`
+          
+          await orderDataEmitter(isConnected, customerId, path, message, payload, redisKey, io)
+          console.log('[Socket] Order Cancelled Successfully.')
+
+      }catch(err){
+        await t?.rollback()
+        console.error('[cancel_order] error:', err)
+        socket.emit('cancel_order', { success: false, message: 'Internal server error.' })
+      }
    })
 }

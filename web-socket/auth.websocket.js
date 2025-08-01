@@ -155,4 +155,27 @@ exports.redisOrderResponse= async( userId, io )=>{
      }
 }
 
+
+exports.redisOrderCancelMessage= async( userId, io)=>{
+  const redisKey = `cancelling:order_cancel:${userId}`
+     try {
+        const pendingOrderCancelletion = await redisClient.lRange(redisKey, 0, -1)
+
+        if (pendingOrderCancelletion.length > 0) {
+          for (const rawData of pendingOrderCancelletion) {
+              const parsed = JSON.parse(rawData)
+              io.to(userId).emit(parsed.path, { success: true, statusCode: 200, type: parsed.type || 'cancel_order',
+                message: 'You have a pending order cancellation notifications.',
+                data: parsed.data
+              })
+          }
+
+          await redisClient.del(redisKey)
+          console.log(`[Socket] Delivered ${pendingOrderCancelletion.length} pending Order Canceleation notifications to Owner ${userId}.`)
+        }
+     } catch (err) {
+        console.error(`[Socket] Failed to deliver pending Order Canceleation notifications for ${userId}:`, err.message)
+     }
+}
+
   

@@ -1,7 +1,7 @@
-const {  Listen_WS_CustomerOrders }= require('../web-socket/customer.websocket')
+const {  Listen_WS_CustomerOrders, Listen_WS_CustomerCancelOrder }= require('../web-socket/customer.websocket')
 const { Listen_WS_OwnerOrderDecision }= require('../web-socket/owner.websocket')
 const { Op } = require('sequelize')
-const { socketConnectionAuthMiddleware, redisOrderDelivery, redisOrderResponse}= require('../web-socket/auth.websocket')
+const { socketConnectionAuthMiddleware, redisOrderDelivery, redisOrderResponse, redisOrderCancelMessage}= require('../web-socket/auth.websocket')
 const connectedClients = new Map()
 const { redisClient }= require('../services/redis_services_')
 
@@ -20,9 +20,11 @@ exports.handleCreateSocketConnectionForOwner = async (io) => {
 
         await redisOrderDelivery(userId, io)
         await redisOrderResponse(userId, io)
+        await redisOrderCancelMessage(userId, io)
 
         await Listen_WS_CustomerOrders(socket, io, connectedClients)
         await Listen_WS_OwnerOrderDecision(socket, io, connectedClients)
+        await Listen_WS_CustomerCancelOrder(socket, io, connectedClients)
 
         socket.on('disconnect', () => {
           connectedClients.delete(socket.user.id)

@@ -134,11 +134,7 @@ exports.Listen_WS_OwnerOrderDecision= async(socket, io, connectedClients)=>{
             if (plan.issuedTokens.length > 0) {
               plan.status = 'active'
             }  
-
-            // const isConsistent = submittedTokenIds.every(id => used.has(id))
-            // if (!isConsistent) {
-            //   throw new Error('Plan-token mismatch: some tokens not found in usedTokens')
-            // }          
+         
             await plan.save({ transaction })
 
             await Order.update(
@@ -151,13 +147,6 @@ exports.Listen_WS_OwnerOrderDecision= async(socket, io, connectedClients)=>{
 
           await transaction.commit()
           console.log('[Socket] Order Action Completed.')
-          
-          const isConnected = connectedClients.has(customerId)
-          const path= 'order_update'
-          const message= `Your order has been ${decision} by the owner.`
-          const redisKey = `pending:order_updates:${customerId}`
-          
-          await orderDataEmitter(isConnected, customerId, path, message, payload, redisKey, io)
 
           socket.emit('order_response', { success: true, statusCode: 200, type: 'order_processed', message: `Order ${decision} successfully.`,
             data: {
@@ -165,7 +154,14 @@ exports.Listen_WS_OwnerOrderDecision= async(socket, io, connectedClients)=>{
               status: decision
             }
           })
-  
+          
+          const isConnected = connectedClients.has(customerId)
+          const path= 'order_update'
+          const message= `Your order has been ${decision} by the owner.`
+          const redisKey = `pending:order_updates:${customerId}`
+          
+          await orderDataEmitter(isConnected, mess.messOwnerId, path, message, payload, redisKey, io)
+
     } catch (err) {
       if (transaction) await transaction.rollback()
       console.error('[owner_order_decision] error:', err)
